@@ -26,12 +26,13 @@
 
         canvas { display: block; }
 
-        /* Игровые индикаторы */
+        /* Игровой интерфейс */
         #score { 
             position: fixed; top: 20px; left: 20px; 
             font-size: 22px; font-weight: 800; z-index: 2; 
             color: var(--text-main); background: var(--bg-glass);
             padding: 8px 16px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            pointer-events: none;
         }
 
         #slowStatus { 
@@ -46,49 +47,49 @@
             font-size: 120px; pointer-events: none; z-index: 5; opacity: 0;
         }
 
-        /* Общие стили оверлеев */
+        /* Оверлеи и Меню */
         .overlay { 
             position: fixed; inset: 0; 
             background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
             display: flex; flex-direction: column; justify-content: center; 
             align-items: center; gap: 20px; z-index: 10; padding: 24px; 
-            transition: all 0.3s ease;
         }
 
-        /* Карточка меню */
         .menu-card {
             background: var(--bg-glass);
             padding: 32px;
             border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 340px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.5);
+            text-align: center;
         }
 
         h1 { font-size: 28px; margin: 0 0 10px 0; color: var(--text-main); letter-spacing: -0.5px; }
 
-        /* Стили кнопок */
+        /* Кнопки */
         button { 
             width: 100%;
             padding: 14px 20px; 
             font-size: 16px; font-weight: 700;
             cursor: pointer; border: none; 
             background: #374151; color: white; 
-            border-radius: 14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 14px; transition: all 0.2s ease;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-top: 5px;
         }
 
-        button:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        button:hover { transform: translateY(-2px); }
         button:active { transform: scale(0.98); }
 
-        .btn-play { background: #10b981; margin-bottom: 8px; }
+        .btn-play { background: #10b981; }
         .btn-play:hover { background: #059669; }
 
-        .btn-tg { background: #0088cc !important; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-tg { background: #0088cc !important; }
 
-        /* Поля ввода */
+        /* Ввод данных */
         input { 
             width: 100%; box-sizing: border-box;
             padding: 14px; font-size: 16px; 
@@ -99,10 +100,11 @@
         }
         input:focus { border-color: var(--primary); }
 
-        /* Таблица лидеров */
+        /* Таблица */
         .table-container { 
             width: 100%; background: white; border-radius: 16px; 
             overflow: hidden; border: 1px solid #e5e7eb;
+            margin-top: 10px;
         }
         .leaderboard-table { width: 100%; border-collapse: collapse; }
         .leaderboard-table thead { background: #f9fafb; color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
@@ -133,7 +135,7 @@
         </div>
         <h1>Побег от Наталии 😈</h1>
         
-        <div id="authSection" class="auth-box">
+        <div id="authSection">
             <input id="loginName" type="text" placeholder="Придумайте ник" maxlength="15">
             <input id="loginPass" type="password" placeholder="Пароль">
             <p id="authError" style="color: #ef4444; font-size: 12px; margin: -5px 0 10px 0; display: none;"></p>
@@ -141,10 +143,10 @@
         </div>
 
         <div id="gameSection" style="display: none;">
-            <p style="margin: 0 0 15px 0; color: var(--text-muted)">Добро пожаловать, <b id="welcomeText" style="color: var(--text-main)"></b>!</p>
-            <button onclick="startGame()" class="btn-play">НАЧАТЬ ИГРУ</button>
-            <button onclick="showLeaderboard()" style="background: #6b7280;">🏆 Таблица лидеров</button>
-            <button onclick="location.reload()" style="background: transparent; color: #9ca3af; box-shadow: none; font-size: 13px; text-decoration: underline;">Сменить аккаунт</button>
+            <p style="margin: 0 0 15px 0; color: var(--text-muted)">Привет, <b id="welcomeText" style="color: var(--text-main)"></b>!</p>
+            <button onclick="startGame()" class="btn-play">ИГРАТЬ</button>
+            <button onclick="showLeaderboard()">🏆 Лидеры</button>
+            <button onclick="logout()" style="background: transparent; color: #9ca3af; box-shadow: none; font-size: 12px; text-decoration: underline;">Сменить аккаунт</button>
         </div>
     </div>
     
@@ -155,45 +157,36 @@
 
 <div id="leaderboard" class="overlay" style="display: none;">
     <div class="menu-card" style="max-width: 400px;">
-        <h2 style="margin-top: 0;">🏆 Топ игроков</h2>
-        
-        <div class="filters-container" style="display: flex; gap: 8px; margin-bottom: 15px;">
-            <button id="btnRec" onclick="loadTab('score')" style="font-size: 12px; padding: 8px;">ПО РЕКОРДУ</button>
-            <button id="btnSum" onclick="loadTab('total_score')" style="font-size: 12px; padding: 8px; background: #e5e7eb; color: #374151;">ПО СУММЕ</button>
+        <h2>🏆 Рекорды</h2>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <button id="btnRec" onclick="loadTab('score')" style="font-size: 11px;">РЕКОРДЫ</button>
+            <button id="btnSum" onclick="loadTab('total_score')" style="font-size: 11px;">СУММА</button>
         </div>
-
         <div class="table-container">
             <table class="leaderboard-table">
                 <thead>
-                    <tr>
-                        <th style="width: 40px;">#</th>
-                        <th>Игрок</th>
-                        <th id="typeLabel" style="text-align: right;">Очки</th>
-                    </tr>
+                    <tr><th style="width:30px">#</th><th>Игрок</th><th id="typeLabel" style="text-align:right">Очки</th></tr>
                 </thead>
                 <tbody id="leaderBody"></tbody>
             </table>
         </div>
-        
-        <button onclick="closeLeaderboard()" style="margin-top: 20px;">Назад в меню</button>
+        <button onclick="closeLeaderboard()">Назад</button>
     </div>
 </div>
 
 <div id="gameOver" class="overlay" style="display: none;">
     <div class="menu-card">
         <h1 style="font-size: 40px;">😈</h1>
-        <h2 style="margin: 0;">Пойман!</h2>
-        <p style="font-size: 20px; color: var(--text-muted); margin: 10px 0 25px 0;">Ваш результат: <b id="finalScore" style="color: var(--primary)">0</b></p>
-        
-        <button onclick="restart()" class="btn-play">ПОПРОБОВАТЬ СНОВА</button>
-        <button onclick="backToMenu()" style="margin-top: 8px; background: #6b7280;">В МЕНЮ</button>
+        <h2>Пойман!</h2>
+        <p style="font-size: 20px; color: var(--text-muted);">Результат: <b id="finalScore" style="color: var(--primary)">0</b></p>
+        <button onclick="restart()" class="btn-play">ЕЩЕ РАЗ</button>
+        <button onclick="backToMenu()">В МЕНЮ</button>
     </div>
 </div>
 
 <canvas id="game"></canvas>
 
 <script>
-// --- КОНФИГ И ЛОГИКА ОСТАЛИСЬ ПРЕЖНИМИ (РАБОЧИМИ) ---
 const SB_URL = "https://ffmyynrwbggefxqtkpau.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmbXl5bnJ3YmdnZWZ4cXRrcGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NTU2NDksImV4cCI6MjA5MTQzMTY0OX0.Pb3KJl6edAA_k5Ce6JlWO0Y81T-XboLVcPlvdU-T3W0";
 const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
@@ -202,31 +195,20 @@ const sessionID = Math.random().toString(36).substring(7);
 let playerName = "";
 let currentID = null;
 
-async function initOnline() {
-    const channel = supabaseClient.channel('presence-game', { config: { presence: { key: sessionID } } });
-    channel.on('presence', { event: 'sync' }, () => {
-        const count = Object.keys(channel.presenceState()).length;
-        document.getElementById("onlineCount").innerText = count;
-    }).subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') await channel.track({ user: playerName || 'Гость' });
-    });
-}
-initOnline();
+// --- АВТОРИЗАЦИЯ И ХРАНЕНИЕ ---
 
-function triggerFreeze() {
-    const el = document.getElementById("freezeOverlay");
-    el.style.transition = "none"; el.style.transform = "scale(0.5)"; el.style.opacity = "1";
-    setTimeout(() => {
-        el.style.transition = "transform 0.5s ease-out, opacity 0.5s ease-out";
-        el.style.transform = "scale(1.5)"; el.style.opacity = "0";
-    }, 50);
+function checkAutoLogin() {
+    const saved = localStorage.getItem('game_user');
+    if (saved) {
+        loginSuccess(JSON.parse(saved), false);
+    }
 }
 
 async function handleAuth() {
     const name = document.getElementById("loginName").value.trim();
     const pass = document.getElementById("loginPass").value.trim();
     const err = document.getElementById("authError");
-    if (name.length < 2 || pass.length < 4) { err.innerText = "Ник (2+) и пароль (4+) слишком короткие"; err.style.display = "block"; return; }
+    if (name.length < 2 || pass.length < 4) { err.innerText = "Ник (2+) и пароль (4+) малы"; err.style.display = "block"; return; }
     
     const { data: user } = await supabaseClient.from('leaderboard').select('*').eq('name', name).maybeSingle();
     
@@ -234,23 +216,38 @@ async function handleAuth() {
         if (user.password === pass) { loginSuccess(user); } 
         else { err.innerText = "Неверный пароль"; err.style.display = "block"; }
     } else {
-        const { data: newUser, error: regErr } = await supabaseClient.from('leaderboard').insert([{ name, password: pass, score: 0, total_score: 0 }]).select().single();
-        if (regErr) { err.innerText = "Ошибка регистрации"; err.style.display = "block"; } else { loginSuccess(newUser); }
+        const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ name, password: pass, score: 0, total_score: 0 }]).select().single();
+        loginSuccess(newUser);
     }
 }
 
-function loginSuccess(user) {
-    playerName = user.name; currentID = user.id;
+function loginSuccess(user, save = true) {
+    playerName = user.name;
+    currentID = user.id;
+    if (save) localStorage.setItem('game_user', JSON.stringify(user));
     document.getElementById("authSection").style.display = "none";
     document.getElementById("gameSection").style.display = "block";
     document.getElementById("welcomeText").innerText = playerName;
 }
 
+function logout() {
+    localStorage.removeItem('game_user');
+    location.reload();
+}
+
+// --- ОНЛАЙН ---
+async function initOnline() {
+    const ch = supabaseClient.channel('presence-game', { config: { presence: { key: sessionID } } });
+    ch.on('presence', { event: 'sync' }, () => {
+        document.getElementById("onlineCount").innerText = Object.keys(ch.presenceState()).length;
+    }).subscribe(async (s) => { if (s === 'SUBSCRIBED') await ch.track({ user: playerName || 'Гость' }); });
+}
+
+// --- ИГРОВАЯ ЛОГИКА ---
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-let score = 0, running = false, animationId, slowTimer = 0;
+let score = 0, running = false, slowTimer = 0, points = [];
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
-let points = [];
 const playerImg = new Image(); playerImg.src = "https://cdn-icons-png.flaticon.com/512/1946/1946429.png";
 const enemyImg = new Image(); enemyImg.src = "natalia.jpg";
 
@@ -271,27 +268,38 @@ function update() {
         document.getElementById("slowStatus").style.display = "block";
         document.getElementById("slowFrames").innerText = slowTimer;
     } else { document.getElementById("slowStatus").style.display = "none"; }
+
     let dx = player.x - enemy.x, dy = player.y - enemy.y, dist = Math.hypot(dx, dy);
     if (dist > 1) { enemy.x += (dx / dist) * speed; enemy.y += (dy / dist) * speed; }
+
     points.forEach((p, i) => {
         ctx.beginPath();
         ctx.fillStyle = {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", rainbow:"gold"}[p.type];
         ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
         if (Math.hypot(player.x - p.x, player.y - p.y) < player.r + p.r) {
-            if (p.type === "rare") { slowTimer += 40; triggerFreeze(); }
-            if (p.type === "yellow") { slowTimer += 100; triggerFreeze(); }
+            if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
             score += {common:1, rare:1, yellow:1, epic:3, green:5, rainbow:10}[p.type];
             document.getElementById("score").innerText = "Очки: " + score;
             points.splice(i, 1); spawnPoint();
         }
     });
+
     ctx.drawImage(playerImg, player.x - player.r, player.y - player.r, player.r*2, player.r*2);
     ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI*2); ctx.clip();
     ctx.drawImage(enemyImg, enemy.x - enemy.r, enemy.y - enemy.r, enemy.r*2, enemy.r*2); ctx.restore();
+
     if (dist < player.r + enemy.r * 0.85) gameOver();
-    else animationId = requestAnimationFrame(update);
+    else requestAnimationFrame(update);
 }
 
+function triggerFreeze() {
+    const el = document.getElementById("freezeOverlay");
+    el.style.opacity = "1"; el.style.transform = "scale(0.5)";
+    setTimeout(() => { el.style.transition = "all 0.5s"; el.style.transform = "scale(1.5)"; el.style.opacity = "0"; }, 50);
+    el.style.transition = ""; 
+}
+
+// --- СИСТЕМА ЛИДЕРОВ ---
 async function showLeaderboard() {
     document.getElementById("leaderboard").style.display = "flex";
     document.getElementById("menu").style.display = "none";
@@ -299,37 +307,24 @@ async function showLeaderboard() {
 }
 
 async function loadTab(mode) {
-    const btnRec = document.getElementById("btnRec");
-    const btnSum = document.getElementById("btnSum");
-    
-    if(mode === 'score') {
-        btnRec.style.background = "#374151"; btnRec.style.color = "white";
-        btnSum.style.background = "#e5e7eb"; btnSum.style.color = "#374151";
-        document.getElementById("typeLabel").innerText = "Рекорд";
-    } else {
-        btnSum.style.background = "#374151"; btnSum.style.color = "white";
-        btnRec.style.background = "#e5e7eb"; btnRec.style.color = "#374151";
-        document.getElementById("typeLabel").innerText = "Сумма";
-    }
-    
+    const btnRec = document.getElementById("btnRec"), btnSum = document.getElementById("btnSum");
+    btnRec.style.background = mode === 'score' ? "#374151" : "#e5e7eb";
+    btnSum.style.background = mode === 'total_score' ? "#374151" : "#e5e7eb";
+    document.getElementById("typeLabel").innerText = mode === 'score' ? "Рекорд" : "Сумма";
+
     const { data } = await supabaseClient.from("leaderboard").select("name, score, total_score").order(mode, { ascending: false }).limit(10);
     document.getElementById("leaderBody").innerHTML = data?.map((p, i) => `
-        <tr>
-            <td style="color: #9ca3af; font-weight: bold;">${i+1}</td>
-            <td style="font-weight: 600;">${p.name}</td>
-            <td style="text-align: right; font-weight: 800; color: var(--primary);">${mode === 'score' ? p.score : p.total_score}</td>
-        </tr>
-    `).join("") || "<tr><td colspan='3'>Загрузка...</td></tr>";
+        <tr><td>${i+1}</td><td style="font-weight:600">${p.name}</td><td style="text-align:right; font-weight:800; color:var(--primary)">${p[mode]}</td></tr>
+    `).join("");
 }
 
 async function saveResults(s) {
     if (!currentID) return;
     const { data } = await supabaseClient.from("leaderboard").select("*").eq("id", currentID).single();
-    if (data) {
-        await supabaseClient.from("leaderboard").update({ score: Math.max(s, data.score), total_score: (data.total_score || 0) + s }).eq("id", currentID);
-    }
+    if (data) await supabaseClient.from("leaderboard").update({ score: Math.max(s, data.score), total_score: (data.total_score || 0) + s }).eq("id", currentID);
 }
 
+// --- УПРАВЛЕНИЕ ---
 function startGame() {
     document.getElementById("menu").style.display = "none";
     score = 0; points = []; slowTimer = 0; enemy.x = -200;
@@ -339,8 +334,7 @@ function startGame() {
 }
 
 function gameOver() { 
-    running = false; 
-    saveResults(score); 
+    running = false; saveResults(score); 
     document.getElementById("finalScore").innerText = score; 
     document.getElementById("gameOver").style.display = "flex"; 
 }
@@ -354,6 +348,9 @@ window.addEventListener("resize", () => {
     player.r = Math.min(canvas.width, canvas.height) * 0.06;
     enemy.r = player.r;
 });
+
+checkAutoLogin();
+initOnline();
 window.dispatchEvent(new Event('resize'));
 window.addEventListener("mousemove", (e) => { player.x = e.clientX; player.y = e.clientY; });
 window.addEventListener("touchmove", (e) => { player.x = e.touches[0].clientX; player.y = e.touches[0].clientY; e.preventDefault(); }, {passive:false});
