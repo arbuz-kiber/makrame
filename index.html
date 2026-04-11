@@ -83,6 +83,7 @@
 
         button:hover { transform: translateY(-2px); }
         button:active { transform: scale(0.98); }
+        button:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
 
         .btn-play { background: #10b981; }
         .btn-play:hover { background: #059669; }
@@ -111,10 +112,38 @@
         .leaderboard-table th { padding: 12px; text-align: left; }
         .leaderboard-table td { padding: 14px 12px; border-top: 1px solid #f3f4f6; font-size: 15px; }
 
+        /* Стили Магазина */
+        .shop-item {
+            display: flex; align-items: center; gap: 15px;
+            background: white; padding: 12px; border-radius: 16px;
+            margin-bottom: 10px; border: 1px solid #e5e7eb;
+        }
+        .shop-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        .shop-info { flex: 1; text-align: left; }
+        .shop-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
+        .shop-price { font-size: 12px; color: #b45309; font-weight: 600; }
+        .btn-buy-small { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
+
+        /* Статусы в меню */
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .macrame-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #fef3c7; color: #92400e; padding: 4px 12px;
+            border-radius: 20px; font-size: 15px; font-weight: 700;
+            border: 1px solid #fde68a;
+        }
+
         .online-badge {
             display: inline-flex; align-items: center; gap: 6px;
             background: #dcfce7; color: #166534; padding: 4px 12px;
-            border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 15px;
+            border-radius: 20px; font-size: 13px; font-weight: 600;
         }
         .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
 
@@ -129,11 +158,18 @@
 
 <div id="menu" class="overlay">
     <div class="menu-card">
-        <div class="online-badge">
-            <span class="online-dot"></span>
-            Онлайн: <span id="onlineCount">...</span>
+        <div class="status-container">
+            <div id="macrameStats" class="macrame-badge" style="display: none;">
+                🧶 <span id="macrameCount">0</span>
+            </div>
+            
+            <div class="online-badge">
+                <span class="online-dot"></span>
+                Онлайн: <span id="onlineCount">...</span>
+            </div>
         </div>
-        <h1>Побег от Наталии 😈</h1>
+
+        <h1 id="mainTitle">Побег от Наталии 😈</h1>
         
         <div id="authSection">
             <input id="loginName" type="text" placeholder="Придумайте ник" maxlength="15">
@@ -145,6 +181,7 @@
         <div id="gameSection" style="display: none;">
             <p style="margin: 0 0 15px 0; color: var(--text-muted)">Привет, <b id="welcomeText" style="color: var(--text-main)"></b>!</p>
             <button onclick="startGame()" class="btn-play">ИГРАТЬ</button>
+            <button onclick="openShop()">🛒 Магазин</button>
             <button onclick="showLeaderboard()">🏆 Лидеры</button>
             <button onclick="logout()" style="background: transparent; color: #9ca3af; box-shadow: none; font-size: 12px; text-decoration: underline;">Сменить аккаунт</button>
         </div>
@@ -153,6 +190,14 @@
     <a href="https://t.me/+godxyKIhKEs3Zjhi" target="_blank" style="text-decoration: none; width: 100%; max-width: 340px;">
         <button class="btn-tg">📢 Наш Telegram</button>
     </a>
+</div>
+
+<div id="shop" class="overlay" style="display: none;">
+    <div class="menu-card" style="max-width: 360px;">
+        <h2>Магазин скинов</h2>
+        <div id="shopList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
+        <button onclick="closeShop()">Назад</button>
+    </div>
 </div>
 
 <div id="leaderboard" class="overlay" style="display: none;">
@@ -176,8 +221,8 @@
 
 <div id="gameOver" class="overlay" style="display: none;">
     <div class="menu-card">
-        <h1 style="font-size: 40px;">😈</h1>
-        <h2>Пойман!</h2>
+        <h1 id="gameOverEmoji" style="font-size: 40px;">😈</h1>
+        <h2 id="gameOverTitle">Пойман!</h2>
         <p style="font-size: 20px; color: var(--text-muted);">Результат: <b id="finalScore" style="color: var(--primary)">0</b></p>
         <button onclick="restart()" class="btn-play">ЕЩЕ РАЗ</button>
         <button onclick="backToMenu()">В МЕНЮ</button>
@@ -194,6 +239,17 @@ const sessionID = Math.random().toString(36).substring(7);
 
 let playerName = "";
 let currentID = null;
+let totalMacrame = 0;
+
+// Магазин скинов
+let ownedSkins = ["natalia"];
+let currentSkin = "natalia";
+
+const SKINS = {
+    "natalia": { name: "Наталия", img: "natalia.jpg", price: 0, title: "Побег от Наталии", emoji: "😈" },
+    "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🥸" },
+    "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Будко", emoji: "👺" }
+};
 
 // --- АВТОРИЗАЦИЯ И ХРАНЕНИЕ ---
 
@@ -216,7 +272,15 @@ async function handleAuth() {
         if (user.password === pass) { loginSuccess(user); } 
         else { err.innerText = "Неверный пароль"; err.style.display = "block"; }
     } else {
-        const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ name, password: pass, score: 0, total_score: 0 }]).select().single();
+        const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ 
+            name, 
+            password: pass, 
+            score: 0, 
+            total_score: 0,
+            macrame_points: 0,
+            owned_skins: ["natalia"],
+            current_skin: "natalia"
+        }]).select().single();
         loginSuccess(newUser);
     }
 }
@@ -224,10 +288,143 @@ async function handleAuth() {
 function loginSuccess(user, save = true) {
     playerName = user.name;
     currentID = user.id;
+    totalMacrame = user.macrame_points || 0; 
+    ownedSkins = user.owned_skins || ["natalia"];
+    currentSkin = user.current_skin || "natalia";
+    
     if (save) localStorage.setItem('game_user', JSON.stringify(user));
+    
     document.getElementById("authSection").style.display = "none";
     document.getElementById("gameSection").style.display = "block";
     document.getElementById("welcomeText").innerText = playerName;
+    
+    updateMacrameUI();
+    applySkin();
+}
+
+async function saveResults(s) {
+    if (!currentID) return;
+    
+    const { data } = await supabaseClient
+        .from("leaderboard")
+        .select("score, total_score, macrame_points")
+        .eq("id", currentID)
+        .single();
+    
+    if (data) {
+        const newMacrameTotal = (data.macrame_points || 0) + s;
+        const newTotalScore = (data.total_score || 0) + s;
+        const newBestScore = Math.max(s, data.score || 0);
+
+        await supabaseClient.from("leaderboard").update({ 
+            score: newBestScore, 
+            total_score: newTotalScore,
+            macrame_points: newMacrameTotal 
+        }).eq("id", currentID);
+        
+        totalMacrame = newMacrameTotal;
+        updateMacrameUI();
+        
+        const localUser = JSON.parse(localStorage.getItem('game_user'));
+        if(localUser) {
+            localUser.macrame_points = newMacrameTotal;
+            localUser.total_score = newTotalScore;
+            localUser.score = newBestScore;
+            localStorage.setItem('game_user', JSON.stringify(localUser));
+        }
+    }
+}
+
+function updateMacrameUI() {
+    const badge = document.getElementById("macrameStats");
+    const count = document.getElementById("macrameCount");
+    if (badge && count) {
+        badge.style.display = "inline-flex";
+        count.innerText = totalMacrame;
+    }
+}
+
+// --- ФУНКЦИИ МАГАЗИНА ---
+function openShop() {
+    document.getElementById("shop").style.display = "flex";
+    document.getElementById("menu").style.display = "none";
+    renderShop();
+}
+
+function renderShop() {
+    const container = document.getElementById("shopList");
+    container.innerHTML = "";
+    
+    Object.keys(SKINS).forEach(id => {
+        const s = SKINS[id];
+        const isOwned = ownedSkins.includes(id);
+        const isCurrent = currentSkin === id;
+        
+        container.innerHTML += `
+            <div class="shop-item">
+                <img src="${s.img}" class="shop-img">
+                <div class="shop-info">
+                    <div class="shop-name">${s.name}</div>
+                    <div class="shop-price">${isOwned ? "В коллекции" : s.price + " 🧶"}</div>
+                </div>
+                <button class="btn-buy-small" onclick="${isOwned ? `selectSkin('${id}')` : `buySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>
+                    ${isCurrent ? "Выбрано" : (isOwned ? "Надеть" : "Купить")}
+                </button>
+            </div>
+        `;
+    });
+}
+
+async function buySkin(id) {
+    const price = SKINS[id].price;
+    if (totalMacrame >= price) {
+        totalMacrame -= price;
+        ownedSkins.push(id);
+        
+        await supabaseClient.from('leaderboard').update({ 
+            macrame_points: totalMacrame, 
+            owned_skins: ownedSkins 
+        }).eq('id', currentID);
+        
+        updateMacrameUI();
+        renderShop();
+        
+        const localUser = JSON.parse(localStorage.getItem('game_user'));
+        if(localUser) {
+            localUser.macrame_points = totalMacrame;
+            localUser.owned_skins = ownedSkins;
+            localStorage.setItem('game_user', JSON.stringify(localUser));
+        }
+    } else {
+        alert("Недостаточно макраме!");
+    }
+}
+
+async function selectSkin(id) {
+    currentSkin = id;
+    await supabaseClient.from('leaderboard').update({ current_skin: id }).eq('id', currentID);
+    
+    const localUser = JSON.parse(localStorage.getItem('game_user'));
+    if(localUser) {
+        localUser.current_skin = id;
+        localStorage.setItem('game_user', JSON.stringify(localUser));
+    }
+    
+    applySkin();
+    renderShop();
+}
+
+function applySkin() {
+    const s = SKINS[currentSkin];
+    enemyImg.src = s.img;
+    document.getElementById("mainTitle").innerText = s.title;
+    document.getElementById("gameOverEmoji").innerText = s.emoji;
+    document.getElementById("gameOverTitle").innerText = s.title.replace("Побег от", "Пойман");
+}
+
+function closeShop() {
+    document.getElementById("shop").style.display = "none";
+    document.getElementById("menu").style.display = "flex";
 }
 
 function logout() {
@@ -249,7 +446,7 @@ const ctx = canvas.getContext("2d");
 let score = 0, running = false, slowTimer = 0, points = [];
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
 const playerImg = new Image(); playerImg.src = "https://cdn-icons-png.flaticon.com/512/1946/1946429.png";
-const enemyImg = new Image(); enemyImg.src = "natalia.jpg";
+const enemyImg = new Image(); 
 
 function spawnPoint() {
     const r = Math.random();
@@ -316,12 +513,6 @@ async function loadTab(mode) {
     document.getElementById("leaderBody").innerHTML = data?.map((p, i) => `
         <tr><td>${i+1}</td><td style="font-weight:600">${p.name}</td><td style="text-align:right; font-weight:800; color:var(--primary)">${p[mode]}</td></tr>
     `).join("");
-}
-
-async function saveResults(s) {
-    if (!currentID) return;
-    const { data } = await supabaseClient.from("leaderboard").select("*").eq("id", currentID).single();
-    if (data) await supabaseClient.from("leaderboard").update({ score: Math.max(s, data.score), total_score: (data.total_score || 0) + s }).eq("id", currentID);
 }
 
 // --- УПРАВЛЕНИЕ ---
