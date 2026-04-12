@@ -109,7 +109,7 @@
         .leaderboard-table th { padding: 12px; text-align: left; }
         .leaderboard-table td { padding: 14px 12px; border-top: 1px solid #f3f4f6; font-size: 15px; }
 
-        /* Стили Магазина и Вкладок */
+        /* Стили Магазина */
         .shop-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 10px; font-size: 13px; background: #e5e7eb; color: var(--text-main); border-radius: 10px; margin: 0; }
         .tab-btn.active { background: var(--primary); color: white; }
@@ -124,6 +124,20 @@
         .shop-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
         .shop-price { font-size: 12px; color: #b45309; font-weight: 600; }
         .btn-buy-small { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
+
+        /* Roulette Styles */
+        .roulette-container {
+            background: linear-gradient(135deg, #fefce8 0%, #fff7ed 100%);
+            border-radius: 16px; padding: 16px; border: 2px solid #fbbf24; margin-bottom: 15px;
+        }
+        #rouletteResult { 
+            height: 80px; display: flex; align-items: center; justify-content: center; margin: 10px 0; 
+        }
+        .roulette-img {
+            width: 70px; height: 70px; border-radius: 50%; border: 3px solid #fbbf24; 
+            object-fit: cover; animation: bounce 0.5s infinite alternate;
+        }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
 
         /* Статусы */
         .status-container {
@@ -197,7 +211,7 @@
             <button id="tabSkins" class="tab-btn active" onclick="renderShop('skins')">Скины</button>
             <button id="tabBoosts" class="tab-btn" onclick="renderShop('boosts')">Бустеры</button>
         </div>
-        <div id="shopList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
+        <div id="shopList" style="max-height: 380px; overflow-y: auto; margin-bottom: 15px; padding-right: 5px;"></div>
         <button onclick="closeShop()">Назад</button>
     </div>
 </div>
@@ -252,8 +266,8 @@ let boostUntil = null;
 
 const SKINS = {
     "natalia": { name: "Наталия", img: "natalia.jpg", price: 0, title: "Побег от Наталии", emoji: "😈" },
-    "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🥸" },
-    "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Оксаны", emoji: "👺" }
+    "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🥸", refund: 800 },
+    "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Оксаны", emoji: "👺", refund: 2500 }
 };
 
 // --- СИСТЕМА БУСТОВ ---
@@ -324,7 +338,6 @@ async function checkAutoLogin() {
     const saved = localStorage.getItem('game_user');
     if (saved) {
         const localData = JSON.parse(saved);
-        // При автологине лучше сделать свежий запрос в БД, чтобы данные (бусты) были актуальны
         const { data: user } = await supabaseClient.from('leaderboard').select('*').eq('id', localData.id).maybeSingle();
         if (user) loginSuccess(user, true);
     }
@@ -357,7 +370,7 @@ function loginSuccess(user, save = true) {
     ownedSkins = user.owned_skins || ["natalia"];
     currentSkin = user.current_skin || "natalia";
     boostersCount = user.boosters_count || 0;
-    boostUntil = user.boost_until; // Важно: подтягиваем из БД
+    boostUntil = user.boost_until;
     
     if (save) localStorage.setItem('game_user', JSON.stringify(user));
     
@@ -372,12 +385,10 @@ function loginSuccess(user, save = true) {
 async function saveResults(s) {
     if (!currentID) return;
     
-    // Сначала проверим актуальное время буста прямо перед сохранением
     const isBoosted = isBoostActive();
     const multiplier = isBoosted ? 2 : 1;
     const addedPoints = s * multiplier;
 
-    // Сначала получаем текущие данные, чтобы не перезаписать бусты старыми значениями
     const { data } = await supabaseClient.from("leaderboard").select("*").eq("id", currentID).single();
     
     if (data) {
@@ -404,12 +415,59 @@ function updateMacrameUI() {
     document.getElementById("macrameCount").innerText = totalMacrame;
 }
 
-// --- МАГАЗИН ---
+// --- МАГАЗИН И РУЛЕТКА ---
 
 function openShop() {
     document.getElementById("shop").style.display = "flex";
     document.getElementById("menu").style.display = "none";
     renderShop('skins');
+}
+
+let isSpinning = false;
+async function spinRoulette() {
+    if (isSpinning) return;
+    if (totalMacrame < 2000) { alert("Недостаточно макраме (2000 🧶)"); return; }
+
+    isSpinning = true;
+    totalMacrame -= 2000;
+    updateMacrameUI();
+    
+    const resContainer = document.getElementById("rouletteResult");
+    const rouletteImgs = ["дмитро.jpg", "будко.png", "natalia.jpg"];
+    let i = 0;
+    
+    const anim = setInterval(() => {
+        resContainer.innerHTML = `<img src="${rouletteImgs[i % rouletteImgs.length]}" class="roulette-img">`;
+        i++;
+    }, 100);
+
+    setTimeout(async () => {
+        clearInterval(anim);
+        const winId = Math.random() < 0.75 ? "dmitro" : "budko";
+        const skin = SKINS[winId];
+        
+        resContainer.innerHTML = `<img src="${skin.img}" class="roulette-img" style="border-color: #10b981; animation: none; transform: scale(1.2);">`;
+
+        let msg = "";
+        if (ownedSkins.includes(winId)) {
+            totalMacrame += skin.refund;
+            msg = `Дубликат! Получено ${skin.refund} 🧶`;
+        } else {
+            ownedSkins.push(winId);
+            msg = `Ура! Выпал ${skin.name}!`;
+        }
+
+        setTimeout(() => alert(msg), 100);
+
+        await supabaseClient.from('leaderboard').update({ 
+            macrame_points: totalMacrame, 
+            owned_skins: ownedSkins 
+        }).eq('id', currentID);
+
+        isSpinning = false;
+        updateMacrameUI();
+        renderShop('skins'); // Обновляем список, чтобы кнопка "Надеть" появилась
+    }, 2000);
 }
 
 function renderShop(tab) {
@@ -419,6 +477,24 @@ function renderShop(tab) {
     document.getElementById("tabBoosts").className = tab === 'boosts' ? 'tab-btn active' : 'tab-btn';
 
     if (tab === 'skins') {
+        container.innerHTML = `
+            <div class="roulette-container">
+    <div class="shop-name" style="text-align:center; margin-bottom: 5px;">🎰 РУЛЕТКА СКИНОВ</div>
+    
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; font-size: 11px; font-weight: 700;">
+        <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Дмитро: 75%</span>
+        <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Будко: 25%</span>
+    </div>
+
+    <div id="rouletteResult"><span style="font-size:30px">❓</span></div>
+    
+    <button onclick="spinRoulette()" style="background:#f59e0b; margin-top:0;" ${isSpinning ? 'disabled' : ''}>
+        ${isSpinning ? "КРУТИМ..." : "КРУТИТЬ ЗА 2000 🧶"}
+    </button>
+</div>
+            <div style="margin: 15px 0 10px 5px; font-weight: 800; font-size: 14px; color: var(--text-muted);">ВАШИ СКИНЫ:</div>
+        `;
+
         Object.keys(SKINS).forEach(id => {
             const s = SKINS[id], isOwned = ownedSkins.includes(id), isCurrent = currentSkin === id;
             container.innerHTML += `
