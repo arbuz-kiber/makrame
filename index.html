@@ -69,7 +69,6 @@
 
         h1 { font-size: 28px; margin: 0 0 10px 0; color: var(--text-main); letter-spacing: -0.5px; }
 
-        /* Кнопки */
         button { 
             width: 100%;
             padding: 14px 20px; 
@@ -90,7 +89,6 @@
 
         .btn-tg { background: #0088cc !important; }
 
-        /* Ввод данных */
         input { 
             width: 100%; box-sizing: border-box;
             padding: 14px; font-size: 16px; 
@@ -101,7 +99,6 @@
         }
         input:focus { border-color: var(--primary); }
 
-        /* Таблица */
         .table-container { 
             width: 100%; background: white; border-radius: 16px; 
             overflow: hidden; border: 1px solid #e5e7eb;
@@ -112,7 +109,11 @@
         .leaderboard-table th { padding: 12px; text-align: left; }
         .leaderboard-table td { padding: 14px 12px; border-top: 1px solid #f3f4f6; font-size: 15px; }
 
-        /* Стили Магазина */
+        /* Стили Магазина и Вкладок */
+        .shop-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; font-size: 13px; background: #e5e7eb; color: var(--text-main); border-radius: 10px; margin: 0; }
+        .tab-btn.active { background: var(--primary); color: white; }
+
         .shop-item {
             display: flex; align-items: center; gap: 15px;
             background: white; padding: 12px; border-radius: 16px;
@@ -124,21 +125,17 @@
         .shop-price { font-size: 12px; color: #b45309; font-weight: 600; }
         .btn-buy-small { width: auto; padding: 8px 12px; font-size: 12px; margin: 0; }
 
-        /* Статусы в меню */
+        /* Статусы */
         .status-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 15px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 15px;
         }
-
         .macrame-badge {
             display: inline-flex; align-items: center; gap: 6px;
             background: #fef3c7; color: #92400e; padding: 4px 12px;
             border-radius: 20px; font-size: 15px; font-weight: 700;
             border: 1px solid #fde68a;
         }
+        .boost-timer-active { font-size: 12px; color: #ef4444; font-weight: 800; animation: pulse 1s infinite; }
 
         .online-badge {
             display: inline-flex; align-items: center; gap: 6px;
@@ -160,8 +157,10 @@
     <div class="menu-card">
         <div class="status-container">
             <div id="macrameStats" class="macrame-badge" style="display: none;">
+                <span id="boostIcon" style="display:none; margin-right:4px;">🔥</span>
                 🧶 <span id="macrameCount">0</span>
             </div>
+            <div id="activeBoostTimer" class="boost-timer-active" style="display:none">X2🧶: <span id="bTime">0:00</span></div>
             
             <div class="online-badge">
                 <span class="online-dot"></span>
@@ -194,7 +193,10 @@
 
 <div id="shop" class="overlay" style="display: none;">
     <div class="menu-card" style="max-width: 360px;">
-        <h2>Магазин скинов</h2>
+        <div class="shop-tabs">
+            <button id="tabSkins" class="tab-btn active" onclick="renderShop('skins')">Скины</button>
+            <button id="tabBoosts" class="tab-btn" onclick="renderShop('boosts')">Бустеры</button>
+        </div>
         <div id="shopList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
         <button onclick="closeShop()">Назад</button>
     </div>
@@ -223,6 +225,7 @@
     <div class="menu-card">
         <h1 id="gameOverEmoji" style="font-size: 40px;">😈</h1>
         <h2 id="gameOverTitle">Пойман!</h2>
+        <p style="margin:0; color:var(--text-muted)">Начислено🧶: <b id="addedMacrame" style="color:#10b981">+0</b> <span id="boostIndicator" style="color:#f59e0b; font-weight:800"></span></p>
         <p style="font-size: 20px; color: var(--text-muted);">Результат: <b id="finalScore" style="color: var(--primary)">0</b></p>
         <button onclick="restart()" class="btn-play">ЕЩЕ РАЗ</button>
         <button onclick="backToMenu()">В МЕНЮ</button>
@@ -241,23 +244,83 @@ let playerName = "";
 let currentID = null;
 let totalMacrame = 0;
 
-// Магазин скинов
+// Магазин
 let ownedSkins = ["natalia"];
 let currentSkin = "natalia";
+let boostersCount = 0;
+let boostUntil = null; // Дата окончания буста
 
 const SKINS = {
     "natalia": { name: "Наталия", img: "natalia.jpg", price: 0, title: "Побег от Наталии", emoji: "😈" },
     "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🥸" },
-    "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Будко", emoji: "👺" }
+    "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Оксаны", emoji: "👺" }
 };
 
-// --- АВТОРИЗАЦИЯ И ХРАНЕНИЕ ---
+// --- СИСТЕМА БУСТОВ ---
+
+function isBoostActive() {
+    if (!boostUntil) return false;
+    return new Date(boostUntil) > new Date();
+}
+
+async function buyBooster() {
+    if (totalMacrame >= 1250) {
+        totalMacrame -= 1250;
+        boostersCount++;
+        await supabaseClient.from('leaderboard').update({ 
+            macrame_points: totalMacrame, 
+            boosters_count: boostersCount 
+        }).eq('id', currentID);
+        updateMacrameUI();
+        renderShop('boosts');
+    } else { alert("Недостаточно макраме!"); }
+}
+
+async function activateBooster() {
+    if (boostersCount <= 0) return;
+    
+    let now = new Date();
+    // Если буст уже идет, прибавляем к нему, если нет - к "сейчас"
+    let baseTime = isBoostActive() ? new Date(boostUntil) : now;
+    let newEnd = new Date(baseTime.getTime() + (7 * 60 * 1000));
+    
+    boostersCount--;
+    boostUntil = newEnd.toISOString();
+
+    await supabaseClient.from('leaderboard').update({ 
+        boosters_count: boostersCount,
+        boost_until: boostUntil
+    }).eq('id', currentID);
+
+    updateMacrameUI();
+    renderShop('boosts');
+}
+
+// Таймер буста в меню
+setInterval(() => {
+    const timerBox = document.getElementById("activeBoostTimer");
+    const timeLabel = document.getElementById("bTime");
+    const icon = document.getElementById("boostIcon");
+
+    if (isBoostActive()) {
+        const diff = new Date(boostUntil) - new Date();
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        timerBox.style.display = "block";
+        icon.style.display = "inline";
+        timeLabel.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    } else {
+        timerBox.style.display = "none";
+        icon.style.display = "none";
+    }
+}, 1000);
+
+
+// --- АВТОРИЗАЦИЯ ---
 
 function checkAutoLogin() {
     const saved = localStorage.getItem('game_user');
-    if (saved) {
-        loginSuccess(JSON.parse(saved), false);
-    }
+    if (saved) loginSuccess(JSON.parse(saved), false);
 }
 
 async function handleAuth() {
@@ -273,13 +336,8 @@ async function handleAuth() {
         else { err.innerText = "Неверный пароль"; err.style.display = "block"; }
     } else {
         const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ 
-            name, 
-            password: pass, 
-            score: 0, 
-            total_score: 0,
-            macrame_points: 0,
-            owned_skins: ["natalia"],
-            current_skin: "natalia"
+            name, password: pass, score: 0, total_score: 0, macrame_points: 0,
+            owned_skins: ["natalia"], current_skin: "natalia", boosters_count: 0
         }]).select().single();
         loginSuccess(newUser);
     }
@@ -291,6 +349,8 @@ function loginSuccess(user, save = true) {
     totalMacrame = user.macrame_points || 0; 
     ownedSkins = user.owned_skins || ["natalia"];
     currentSkin = user.current_skin || "natalia";
+    boostersCount = user.boosters_count || 0;
+    boostUntil = user.boost_until;
     
     if (save) localStorage.setItem('game_user', JSON.stringify(user));
     
@@ -305,113 +365,96 @@ function loginSuccess(user, save = true) {
 async function saveResults(s) {
     if (!currentID) return;
     
-    const { data } = await supabaseClient
-        .from("leaderboard")
-        .select("score, total_score, macrame_points")
-        .eq("id", currentID)
-        .single();
+    const isBoosted = isBoostActive();
+    const multiplier = isBoosted ? 2 : 1;
+    const addedPoints = s * multiplier;
+
+    const { data } = await supabaseClient.from("leaderboard").select("score, total_score, macrame_points").eq("id", currentID).single();
     
     if (data) {
-        const newMacrameTotal = (data.macrame_points || 0) + s;
-        const newTotalScore = (data.total_score || 0) + s;
-        const newBestScore = Math.max(s, data.score || 0);
-
+        const newMacrameTotal = (data.macrame_points || 0) + addedPoints;
         await supabaseClient.from("leaderboard").update({ 
-            score: newBestScore, 
-            total_score: newTotalScore,
+            score: Math.max(s, data.score || 0), 
+            total_score: (data.total_score || 0) + s,
             macrame_points: newMacrameTotal 
         }).eq("id", currentID);
         
         totalMacrame = newMacrameTotal;
         updateMacrameUI();
         
-        const localUser = JSON.parse(localStorage.getItem('game_user'));
-        if(localUser) {
-            localUser.macrame_points = newMacrameTotal;
-            localUser.total_score = newTotalScore;
-            localUser.score = newBestScore;
-            localStorage.setItem('game_user', JSON.stringify(localUser));
-        }
+        document.getElementById("addedMacrame").innerText = "+" + addedPoints;
+        document.getElementById("boostIndicator").innerText = isBoosted ? "(x2🧶)" : "";
     }
 }
 
 function updateMacrameUI() {
-    const badge = document.getElementById("macrameStats");
-    const count = document.getElementById("macrameCount");
-    if (badge && count) {
-        badge.style.display = "inline-flex";
-        count.innerText = totalMacrame;
-    }
+    document.getElementById("macrameStats").style.display = "inline-flex";
+    document.getElementById("macrameCount").innerText = totalMacrame;
 }
 
-// --- ФУНКЦИИ МАГАЗИНА ---
+// --- МАГАЗИН ---
+
 function openShop() {
     document.getElementById("shop").style.display = "flex";
     document.getElementById("menu").style.display = "none";
-    renderShop();
+    renderShop('skins');
 }
 
-function renderShop() {
+function renderShop(tab) {
     const container = document.getElementById("shopList");
     container.innerHTML = "";
     
-    Object.keys(SKINS).forEach(id => {
-        const s = SKINS[id];
-        const isOwned = ownedSkins.includes(id);
-        const isCurrent = currentSkin === id;
-        
-        container.innerHTML += `
+    document.getElementById("tabSkins").className = tab === 'skins' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById("tabBoosts").className = tab === 'boosts' ? 'tab-btn active' : 'tab-btn';
+
+    if (tab === 'skins') {
+        Object.keys(SKINS).forEach(id => {
+            const s = SKINS[id], isOwned = ownedSkins.includes(id), isCurrent = currentSkin === id;
+            container.innerHTML += `
+                <div class="shop-item">
+                    <img src="${s.img}" class="shop-img">
+                    <div class="shop-info">
+                        <div class="shop-name">${s.name}</div>
+                        <div class="shop-price">${isOwned ? "В коллекции" : s.price + " 🧶"}</div>
+                    </div>
+                    <button class="btn-buy-small" onclick="${isOwned ? `selectSkin('${id}')` : `buySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>
+                        ${isCurrent ? "Выбрано" : (isOwned ? "Надеть" : "Купить")}
+                    </button>
+                </div>`;
+        });
+    } else {
+        container.innerHTML = `
             <div class="shop-item">
-                <img src="${s.img}" class="shop-img">
                 <div class="shop-info">
-                    <div class="shop-name">${s.name}</div>
-                    <div class="shop-price">${isOwned ? "В коллекции" : s.price + " 🧶"}</div>
+                    <div class="shop-name">Бустер x2 Макраме Поинтов</div>
+                    <div class="shop-price">Цена: 1250 🧶 (на 7 мин)</div>
                 </div>
-                <button class="btn-buy-small" onclick="${isOwned ? `selectSkin('${id}')` : `buySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>
-                    ${isCurrent ? "Выбрано" : (isOwned ? "Надеть" : "Купить")}
-                </button>
+                <button class="btn-buy-small" onclick="buyBooster()">Купить</button>
             </div>
-        `;
-    });
+            <div style="margin-top:15px; text-align:left; background:rgba(255,255,255,0.5); padding:15px; border-radius:12px;">
+                <div style="font-weight:800; font-size:14px;">Инвентарь: ${boostersCount} шт.</div>
+                <button onclick="activateBooster()" style="background:#10b981; margin-top:10px;" ${boostersCount === 0 ? 'disabled' : ''}>
+                    АКТИВИРОВАТЬ
+                </button>
+            </div>`;
+    }
 }
 
 async function buySkin(id) {
-    const price = SKINS[id].price;
-    if (totalMacrame >= price) {
-        totalMacrame -= price;
+    if (totalMacrame >= SKINS[id].price) {
+        totalMacrame -= SKINS[id].price;
         ownedSkins.push(id);
-        
-        await supabaseClient.from('leaderboard').update({ 
-            macrame_points: totalMacrame, 
-            owned_skins: ownedSkins 
-        }).eq('id', currentID);
-        
+        await supabaseClient.from('leaderboard').update({ macrame_points: totalMacrame, owned_skins: ownedSkins }).eq('id', currentID);
         updateMacrameUI();
-        renderShop();
-        
-        const localUser = JSON.parse(localStorage.getItem('game_user'));
-        if(localUser) {
-            localUser.macrame_points = totalMacrame;
-            localUser.owned_skins = ownedSkins;
-            localStorage.setItem('game_user', JSON.stringify(localUser));
-        }
-    } else {
-        alert("Недостаточно макраме!");
-    }
+        renderShop('skins');
+    } else { alert("Недостаточно макраме!"); }
 }
 
 async function selectSkin(id) {
     currentSkin = id;
     await supabaseClient.from('leaderboard').update({ current_skin: id }).eq('id', currentID);
-    
-    const localUser = JSON.parse(localStorage.getItem('game_user'));
-    if(localUser) {
-        localUser.current_skin = id;
-        localStorage.setItem('game_user', JSON.stringify(localUser));
-    }
-    
     applySkin();
-    renderShop();
+    renderShop('skins');
 }
 
 function applySkin() {
@@ -419,18 +462,11 @@ function applySkin() {
     enemyImg.src = s.img;
     document.getElementById("mainTitle").innerText = s.title;
     document.getElementById("gameOverEmoji").innerText = s.emoji;
-    document.getElementById("gameOverTitle").innerText = s.title.replace("Побег от", "Пойман");
 }
 
-function closeShop() {
-    document.getElementById("shop").style.display = "none";
-    document.getElementById("menu").style.display = "flex";
-}
+function closeShop() { document.getElementById("shop").style.display = "none"; document.getElementById("menu").style.display = "flex"; }
 
-function logout() {
-    localStorage.removeItem('game_user');
-    location.reload();
-}
+function logout() { localStorage.removeItem('game_user'); location.reload(); }
 
 // --- ОНЛАЙН ---
 async function initOnline() {
@@ -476,7 +512,7 @@ function update() {
         if (Math.hypot(player.x - p.x, player.y - p.y) < player.r + p.r) {
             if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
             score += {common:1, rare:1, yellow:1, epic:3, green:5, rainbow:10}[p.type];
-            document.getElementById("score").innerText = "Очки: " + score;
+            document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
             points.splice(i, 1); spawnPoint();
         }
     });
@@ -496,7 +532,7 @@ function triggerFreeze() {
     el.style.transition = ""; 
 }
 
-// --- СИСТЕМА ЛИДЕРОВ ---
+// --- ЛИДЕРЫ ---
 async function showLeaderboard() {
     document.getElementById("leaderboard").style.display = "flex";
     document.getElementById("menu").style.display = "none";
@@ -519,7 +555,7 @@ async function loadTab(mode) {
 function startGame() {
     document.getElementById("menu").style.display = "none";
     score = 0; points = []; slowTimer = 0; enemy.x = -200;
-    document.getElementById("score").innerText = "Очки: 0";
+    document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
     for(let i=0; i<6; i++) spawnPoint();
     running = true; update();
 }
@@ -528,6 +564,7 @@ function gameOver() {
     running = false; saveResults(score); 
     document.getElementById("finalScore").innerText = score; 
     document.getElementById("gameOver").style.display = "flex"; 
+    document.getElementById("gameOverTitle").innerText = "Пойман!";
 }
 
 function closeLeaderboard() { document.getElementById("leaderboard").style.display = "none"; document.getElementById("menu").style.display = "flex"; }
