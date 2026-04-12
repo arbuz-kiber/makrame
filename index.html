@@ -466,7 +466,7 @@ async function spinRoulette() {
 
         isSpinning = false;
         updateMacrameUI();
-        renderShop('skins'); // Обновляем список, чтобы кнопка "Надеть" появилась
+        renderShop('skins');
     }, 2000);
 }
 
@@ -479,19 +479,16 @@ function renderShop(tab) {
     if (tab === 'skins') {
         container.innerHTML = `
             <div class="roulette-container">
-    <div class="shop-name" style="text-align:center; margin-bottom: 5px;">🎰 РУЛЕТКА СКИНОВ</div>
-    
-    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; font-size: 11px; font-weight: 700;">
-        <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Дмитро: 75%</span>
-        <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Будко: 25%</span>
-    </div>
-
-    <div id="rouletteResult"><span style="font-size:30px">❓</span></div>
-    
-    <button onclick="spinRoulette()" style="background:#f59e0b; margin-top:0;" ${isSpinning ? 'disabled' : ''}>
-        ${isSpinning ? "КРУТИМ..." : "КРУТИТЬ ЗА 2000 🧶"}
-    </button>
-</div>
+                <div class="shop-name" style="text-align:center; margin-bottom: 5px;">🎰 РУЛЕТКА СКИНОВ</div>
+                <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; font-size: 11px; font-weight: 700;">
+                    <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Дмитро: 75%</span>
+                    <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Будко: 25%</span>
+                </div>
+                <div id="rouletteResult"><span style="font-size:30px">❓</span></div>
+                <button onclick="spinRoulette()" style="background:#f59e0b; margin-top:0;" ${isSpinning ? 'disabled' : ''}>
+                    ${isSpinning ? "КРУТИМ..." : "КРУТИТЬ ЗА 2000 🧶"}
+                </button>
+            </div>
             <div style="margin: 15px 0 10px 5px; font-weight: 800; font-size: 14px; color: var(--text-muted);">ВАШИ СКИНЫ:</div>
         `;
 
@@ -600,7 +597,9 @@ function update() {
             if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
             score += {common:1, rare:1, yellow:1, epic:3, green:5, rainbow:10}[p.type];
             document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
-            points.splice(i, 1); spawnPoint();
+            
+            points.splice(i, 1); 
+            spawnPoint(); 
         }
     });
 
@@ -643,7 +642,10 @@ function startGame() {
     document.getElementById("menu").style.display = "none";
     score = 0; points = []; slowTimer = 0; enemy.x = -200;
     document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
-    for(let i=0; i<6; i++) spawnPoint();
+    
+    // Начальное количество: 9 (чуть больше, но не перебор)
+    for(let i=0; i<9; i++) spawnPoint();
+    
     running = true; update();
 }
 
