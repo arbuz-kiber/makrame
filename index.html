@@ -114,6 +114,19 @@
         .tab-btn { flex: 1; padding: 10px; font-size: 13px; background: #e5e7eb; color: var(--text-main); border-radius: 10px; margin: 0; }
         .tab-btn.active { background: var(--primary); color: white; }
 
+        /* Контейнер списка с прокруткой */
+        #shopList {
+            max-height: 420px; 
+            overflow-y: auto; 
+            padding-right: 5px;
+            margin-bottom: 15px;
+            scrollbar-width: thin;
+        }
+
+        /* Настройка внешнего вида скролла */
+        #shopList::-webkit-scrollbar { width: 4px; }
+        #shopList::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+
         .shop-item {
             display: flex; align-items: center; gap: 15px;
             background: white; padding: 12px; border-radius: 16px;
@@ -211,7 +224,7 @@
             <button id="tabSkins" class="tab-btn active" onclick="renderShop('skins')">Скины</button>
             <button id="tabBoosts" class="tab-btn" onclick="renderShop('boosts')">Бустеры</button>
         </div>
-        <div id="shopList" style="max-height: 380px; overflow-y: auto; margin-bottom: 15px; padding-right: 5px;"></div>
+        <div id="shopList"></div>
         <button onclick="closeShop()">Назад</button>
     </div>
 </div>
@@ -258,7 +271,6 @@ let playerName = "";
 let currentID = null;
 let totalMacrame = 0;
 
-// Магазин
 let ownedSkins = ["natalia"];
 let currentSkin = "natalia";
 let boostersCount = 0;
@@ -269,8 +281,6 @@ const SKINS = {
     "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🥸", refund: 800 },
     "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Оксаны", emoji: "👺", refund: 2500 }
 };
-
-// --- СИСТЕМА БУСТОВ ---
 
 function isBoostActive() {
     if (!boostUntil) return false;
@@ -295,19 +305,15 @@ async function buyBooster() {
 
 async function activateBooster() {
     if (boostersCount <= 0) return;
-    
     let now = new Date();
     let baseTime = isBoostActive() ? new Date(boostUntil) : now;
     let newEnd = new Date(baseTime.getTime() + (7 * 60 * 1000));
-    
     boostersCount--;
     boostUntil = newEnd.toISOString();
-
     const { error } = await supabaseClient.from('leaderboard').update({ 
         boosters_count: boostersCount,
         boost_until: boostUntil
     }).eq('id', currentID);
-
     if(!error) {
         updateMacrameUI();
         renderShop('boosts');
@@ -318,7 +324,6 @@ setInterval(() => {
     const timerBox = document.getElementById("activeBoostTimer");
     const timeLabel = document.getElementById("bTime");
     const icon = document.getElementById("boostIcon");
-
     if (isBoostActive()) {
         const diff = new Date(boostUntil) - new Date();
         const mins = Math.floor(diff / 60000);
@@ -331,8 +336,6 @@ setInterval(() => {
         icon.style.display = "none";
     }
 }, 1000);
-
-// --- АВТОРИЗАЦИЯ ---
 
 async function checkAutoLogin() {
     const saved = localStorage.getItem('game_user');
@@ -348,9 +351,7 @@ async function handleAuth() {
     const pass = document.getElementById("loginPass").value.trim();
     const err = document.getElementById("authError");
     if (name.length < 2 || pass.length < 4) { err.innerText = "Ник (2+) и пароль (4+) малы"; err.style.display = "block"; return; }
-    
     const { data: user } = await supabaseClient.from('leaderboard').select('*').eq('name', name).maybeSingle();
-    
     if (user) {
         if (user.password === pass) { loginSuccess(user); } 
         else { err.innerText = "Неверный пароль"; err.style.display = "block"; }
@@ -371,40 +372,31 @@ function loginSuccess(user, save = true) {
     currentSkin = user.current_skin || "natalia";
     boostersCount = user.boosters_count || 0;
     boostUntil = user.boost_until;
-    
     if (save) localStorage.setItem('game_user', JSON.stringify(user));
-    
     document.getElementById("authSection").style.display = "none";
     document.getElementById("gameSection").style.display = "block";
     document.getElementById("welcomeText").innerText = playerName;
-    
     updateMacrameUI();
     applySkin();
 }
 
 async function saveResults(s) {
     if (!currentID) return;
-    
     const isBoosted = isBoostActive();
     const multiplier = isBoosted ? 2 : 1;
     const addedPoints = s * multiplier;
-
     const { data } = await supabaseClient.from("leaderboard").select("*").eq("id", currentID).single();
-    
     if (data) {
         const newMacrameTotal = (data.macrame_points || 0) + addedPoints;
         const newTotalScore = (data.total_score || 0) + s;
         const newBestScore = Math.max(s, data.score || 0);
-
         await supabaseClient.from("leaderboard").update({ 
             score: newBestScore, 
             total_score: newTotalScore,
             macrame_points: newMacrameTotal 
         }).eq("id", currentID);
-        
         totalMacrame = newMacrameTotal;
         updateMacrameUI();
-        
         document.getElementById("addedMacrame").innerText = "+" + addedPoints;
         document.getElementById("boostIndicator").innerText = isBoosted ? "(x2🧶)" : "";
     }
@@ -414,8 +406,6 @@ function updateMacrameUI() {
     document.getElementById("macrameStats").style.display = "inline-flex";
     document.getElementById("macrameCount").innerText = totalMacrame;
 }
-
-// --- МАГАЗИН И РУЛЕТКА ---
 
 function openShop() {
     document.getElementById("shop").style.display = "flex";
@@ -427,27 +417,21 @@ let isSpinning = false;
 async function spinRoulette() {
     if (isSpinning) return;
     if (totalMacrame < 2000) { alert("Недостаточно макраме (2000 🧶)"); return; }
-
     isSpinning = true;
     totalMacrame -= 2000;
     updateMacrameUI();
-    
     const resContainer = document.getElementById("rouletteResult");
     const rouletteImgs = ["дмитро.jpg", "будко.png", "natalia.jpg"];
     let i = 0;
-    
     const anim = setInterval(() => {
         resContainer.innerHTML = `<img src="${rouletteImgs[i % rouletteImgs.length]}" class="roulette-img">`;
         i++;
     }, 100);
-
     setTimeout(async () => {
         clearInterval(anim);
         const winId = Math.random() < 0.75 ? "dmitro" : "budko";
         const skin = SKINS[winId];
-        
         resContainer.innerHTML = `<img src="${skin.img}" class="roulette-img" style="border-color: #10b981; animation: none; transform: scale(1.2);">`;
-
         let msg = "";
         if (ownedSkins.includes(winId)) {
             totalMacrame += skin.refund;
@@ -456,14 +440,11 @@ async function spinRoulette() {
             ownedSkins.push(winId);
             msg = `Ура! Выпал ${skin.name}!`;
         }
-
         setTimeout(() => alert(msg), 100);
-
         await supabaseClient.from('leaderboard').update({ 
             macrame_points: totalMacrame, 
             owned_skins: ownedSkins 
         }).eq('id', currentID);
-
         isSpinning = false;
         updateMacrameUI();
         renderShop('skins');
@@ -480,16 +461,12 @@ function renderShop(tab) {
         container.innerHTML = `
             <div class="roulette-container">
                 <div class="shop-name" style="text-align:center; margin-bottom: 5px;">🎰 РУЛЕТКА СКИНОВ</div>
-                <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; font-size: 11px; font-weight: 700;">
-                    <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Дмитро: 75%</span>
-                    <span style="color: #4b5563; background: #fff; padding: 2px 8px; border-radius: 8px; border: 1px solid #e5e7eb;">Будко: 25%</span>
-                </div>
                 <div id="rouletteResult"><span style="font-size:30px">❓</span></div>
                 <button onclick="spinRoulette()" style="background:#f59e0b; margin-top:0;" ${isSpinning ? 'disabled' : ''}>
                     ${isSpinning ? "КРУТИМ..." : "КРУТИТЬ ЗА 2000 🧶"}
                 </button>
             </div>
-            <div style="margin: 15px 0 10px 5px; font-weight: 800; font-size: 14px; color: var(--text-muted);">ВАШИ СКИНЫ:</div>
+            <div style="margin: 15px 0 10px 5px; font-weight: 800; font-size: 14px; color: var(--text-muted); text-align: left;">ВАШИ СКИНЫ:</div>
         `;
 
         Object.keys(SKINS).forEach(id => {
@@ -510,8 +487,8 @@ function renderShop(tab) {
         container.innerHTML = `
             <div class="shop-item">
                 <div class="shop-info">
-                    <div class="shop-name">Бустер x2 Макраме Поинтов</div>
-                    <div class="shop-price">Цена: 1250 🧶 (на 7 мин)</div>
+                    <div class="shop-name">Бустер x2 Макраме</div>
+                    <div class="shop-price">1250 🧶 (7 мин)</div>
                 </div>
                 <button class="btn-buy-small" onclick="buyBooster()">Купить</button>
             </div>
@@ -551,7 +528,6 @@ function applySkin() {
 function closeShop() { document.getElementById("shop").style.display = "none"; document.getElementById("menu").style.display = "flex"; }
 function logout() { localStorage.removeItem('game_user'); location.reload(); }
 
-// --- ОНЛАЙН ---
 async function initOnline() {
     const ch = supabaseClient.channel('presence-game', { config: { presence: { key: sessionID } } });
     ch.on('presence', { event: 'sync' }, () => {
@@ -560,10 +536,9 @@ async function initOnline() {
     }).subscribe(async (s) => { if (s === 'SUBSCRIBED') await ch.track({ user: playerName || 'Гость' }); });
 }
 
-// --- ИГРОВАЯ ЛОГИКА ---
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-let score = 0, running = false, slowTimer = 0, points = [], hasShield = false;
+let score = 0, running = false, slowTimer = 0, points = [], hasShield = false, enemyFreezeTimer = 0;
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
 const playerImg = new Image(); playerImg.src = "https://cdn-icons-png.flaticon.com/512/1946/1946429.png";
 const enemyImg = new Image(); 
@@ -571,7 +546,6 @@ const enemyImg = new Image();
 function spawnPoint() {
     const r = Math.random();
     let type = "common";
-    // Тип 'shield' вместо 'rainbow' (шанс 2%)
     if (r > 0.98) type = "shield"; else if (r > 0.94) type = "green"; 
     else if (r > 0.88) type = "yellow"; else if (r > 0.80) type = "epic"; else if (r > 0.70) type = "rare";
     points.push({ x: Math.random() * (canvas.width - 50) + 25, y: Math.random() * (canvas.height - 50) + 25, r: canvas.width * 0.025, type });
@@ -587,57 +561,51 @@ function update() {
         document.getElementById("slowFrames").innerText = slowTimer;
     } else { document.getElementById("slowStatus").style.display = "none"; }
 
-    let dx = player.x - enemy.x, dy = player.y - enemy.y, dist = Math.hypot(dx, dy);
-    if (dist > 1) { enemy.x += (dx / dist) * speed; enemy.y += (dy / dist) * speed; }
+    if (enemyFreezeTimer > 0) {
+        enemyFreezeTimer--;
+    } else {
+        let dx = player.x - enemy.x, dy = player.y - enemy.y, dist = Math.hypot(dx, dy);
+        if (dist > 1) { enemy.x += (dx / dist) * speed; enemy.y += (dy / dist) * speed; }
+    }
 
     points.forEach((p, i) => {
         ctx.beginPath();
-        // Визуал щита на поле — серебристый с синим контуром
         ctx.fillStyle = {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
         ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
         if (p.type === "shield") { ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 2; ctx.stroke(); }
-
         if (Math.hypot(player.x - p.x, player.y - p.y) < player.r + p.r) {
             if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
-            if (p.type === "shield") { hasShield = true; } // Активируем щит
-
+            if (p.type === "shield") { hasShield = true; }
             score += {common:1, rare:1, yellow:1, epic:3, green:5, shield:5}[p.type];
             document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
-            
             points.splice(i, 1); 
             spawnPoint(); 
         }
     });
 
-    // Рисуем поле щита вокруг игрока
     if (hasShield) {
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.r + 10, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(59, 130, 246, 0.3)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(59, 130, 246, 0.8)";
-        ctx.lineWidth = 3;
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(player.x, player.y, player.r + 10, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(59, 130, 246, 0.3)"; ctx.fill();
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
     }
 
     ctx.drawImage(playerImg, player.x - player.r, player.y - player.r, player.r*2, player.r*2);
     ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI*2); ctx.clip();
-    ctx.drawImage(enemyImg, enemy.x - enemy.r, enemy.y - enemy.r, enemy.r*2, enemy.r*2); ctx.restore();
+    ctx.drawImage(enemyImg, enemy.x - enemy.r, enemy.y - enemy.r, enemy.r*2, enemy.r*2); 
+    if (enemyFreezeTimer > 0) { ctx.fillStyle = "rgba(135, 206, 250, 0.5)"; ctx.fillRect(enemy.x - enemy.r, enemy.y - enemy.r, enemy.r * 2, enemy.r * 2); }
+    ctx.restore();
 
-    if (dist < player.r + enemy.r * 0.85) {
+    let distToEnemy = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+    if (distToEnemy < player.r + enemy.r * 0.85) {
         if (hasShield) {
-            // Щит спасает!
-            hasShield = false;
-            // Отбрасываем врага в случайный край
+            hasShield = false; enemyFreezeTimer = 175; triggerFreeze();
             const side = Math.floor(Math.random() * 4);
             if(side === 0) { enemy.x = 0; enemy.y = Math.random() * canvas.height; }
             else if(side === 1) { enemy.x = canvas.width; enemy.y = Math.random() * canvas.height; }
             else if(side === 2) { enemy.x = Math.random() * canvas.width; enemy.y = 0; }
             else { enemy.x = Math.random() * canvas.width; enemy.y = canvas.height; }
             requestAnimationFrame(update);
-        } else {
-            gameOver();
-        }
+        } else { gameOver(); }
     } else requestAnimationFrame(update);
 }
 
@@ -648,7 +616,6 @@ function triggerFreeze() {
     el.style.transition = ""; 
 }
 
-// --- ЛИДЕРЫ ---
 async function showLeaderboard() {
     document.getElementById("leaderboard").style.display = "flex";
     document.getElementById("menu").style.display = "none";
@@ -660,21 +627,17 @@ async function loadTab(mode) {
     btnRec.style.background = mode === 'score' ? "#374151" : "#e5e7eb";
     btnSum.style.background = mode === 'total_score' ? "#374151" : "#e5e7eb";
     document.getElementById("typeLabel").innerText = mode === 'score' ? "Рекорд" : "Сумма";
-
     const { data } = await supabaseClient.from("leaderboard").select("name, score, total_score").order(mode, { ascending: false }).limit(10);
     document.getElementById("leaderBody").innerHTML = data?.map((p, i) => `
         <tr><td>${i+1}</td><td style="font-weight:600">${p.name}</td><td style="text-align:right; font-weight:800; color:var(--primary)">${p[mode]}</td></tr>
     `).join("");
 }
 
-// --- УПРАВЛЕНИЕ ---
 function startGame() {
     document.getElementById("menu").style.display = "none";
-    score = 0; points = []; slowTimer = 0; enemy.x = -200; hasShield = false;
+    score = 0; points = []; slowTimer = 0; enemy.x = -200; hasShield = false; enemyFreezeTimer = 0;
     document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
-    
     for(let i=0; i<9; i++) spawnPoint();
-    
     running = true; update();
 }
 
