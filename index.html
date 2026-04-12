@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Побег от Наталии</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -26,15 +26,17 @@
             font-family: 'Inter', -apple-system, sans-serif; 
             touch-action: none; 
             color: var(--text-main);
+            /* Учет безопасных зон для iOS */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         canvas { display: block; }
 
         #score { 
             position: fixed; top: 20px; left: 20px; 
-            font-size: 20px; font-weight: 800; z-index: 2; 
+            font-size: 18px; font-weight: 800; z-index: 2; 
             color: var(--text-main); background: var(--bg-glass);
-            padding: 10px 20px; border-radius: 15px; 
+            padding: 8px 16px; border-radius: 12px; 
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,0.3);
@@ -42,22 +44,22 @@
 
         #slowStatus { 
             position: fixed; top: 20px; right: 20px; 
-            font-size: 18px; font-weight: bold; color: #3b82f6; 
+            font-size: 16px; font-weight: bold; color: #3b82f6; 
             display: none; z-index: 2; background: var(--bg-glass);
-            padding: 10px 20px; border-radius: 15px; border: 1px solid #bfdbfe;
+            padding: 8px 16px; border-radius: 12px; border: 1px solid #bfdbfe;
             backdrop-filter: blur(8px);
         }
 
         #freezeOverlay {
             position: fixed; inset: 0; display: flex; justify-content: center; align-items: center;
-            font-size: 120px; pointer-events: none; z-index: 5; opacity: 0;
+            font-size: 100px; pointer-events: none; z-index: 5; opacity: 0;
         }
 
         .overlay { 
             position: fixed; inset: 0; 
             background: radial-gradient(circle at top left, #1e293b, #0f172a);
             display: flex; flex-direction: column; justify-content: center; 
-            align-items: center; gap: 20px; z-index: 10; padding: 24px; 
+            align-items: center; gap: 15px; z-index: 10; padding: 16px; 
             animation: fadeIn 0.4s ease-out;
         }
 
@@ -65,24 +67,32 @@
 
         .menu-card {
             background: var(--bg-glass);
-            padding: 35px 25px;
-            border-radius: 30px;
+            padding: 25px 20px;
+            border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             width: 100%;
             max-width: 350px;
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.6);
             text-align: center;
-            max-height: 85vh;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
-            transform: translateY(0);
-            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        /* Оптимизация для мобилок */
+        @media (max-width: 480px) {
+            .menu-card { padding: 20px 15px; }
+            h1 { font-size: 26px !important; }
+            button { padding: 14px 18px !important; font-size: 15px !important; }
+            #score { top: 10px; left: 10px; font-size: 16px; }
+            #slowStatus { top: 10px; right: 10px; font-size: 14px; }
         }
 
         h1 { 
             font-size: 32px; 
-            margin: 0 0 15px 0; 
+            margin: 0 0 10px 0; 
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -96,130 +106,99 @@
             font-size: 16px; font-weight: 700;
             cursor: pointer; border: none; 
             background: var(--primary); color: white; 
-            border-radius: 18px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 16px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 0px var(--primary-dark);
             margin-top: 8px;
             flex-shrink: 0;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
-        button:hover { 
-            filter: brightness(1.1);
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 0px var(--primary-dark);
-        }
-
-        button:active { 
-            transform: translateY(2px);
-            box-shadow: 0 0px 0px var(--primary-dark);
-        }
-
+        button:active { transform: translateY(2px); box-shadow: 0 0px 0px var(--primary-dark); }
         button:disabled { background: #cbd5e1; box-shadow: none; transform: none; cursor: not-allowed; }
 
         .btn-play { 
             background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
             box-shadow: 0 4px 0px #047857;
-            font-size: 20px;
-            padding: 18px;
+            font-size: 18px;
         }
-        .btn-play:hover { box-shadow: 0 6px 0px #047857; }
 
         .btn-tg { background: #0088cc !important; box-shadow: 0 4px 0px #006699 !important; }
 
         input { 
             width: 100%; box-sizing: border-box;
-            padding: 16px; font-size: 16px; 
-            border: 2px solid #e2e8f0; border-radius: 18px; 
+            padding: 14px; font-size: 16px; 
+            border: 2px solid #e2e8f0; border-radius: 16px; 
             outline: none; transition: all 0.2s;
             background: rgba(255,255,255,0.7);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             color: var(--text-main);
         }
-        input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        input:focus { border-color: var(--primary); background: #fff; }
 
         .tabs-container { 
             display: flex; 
             background: #f1f5f9;
-            padding: 5px;
-            border-radius: 18px;
-            gap: 5px; 
-            margin-bottom: 20px; 
+            padding: 4px;
+            border-radius: 14px;
+            gap: 4px; 
+            margin-bottom: 15px; 
             flex-shrink: 0;
         }
         .tab-btn { 
             flex: 1; 
-            padding: 10px; 
-            font-size: 13px; 
+            padding: 8px; 
+            font-size: 12px; 
             background: transparent; 
             color: var(--text-muted); 
-            border-radius: 14px; 
+            border-radius: 10px; 
             margin: 0; 
             box-shadow: none !important;
             transform: none !important;
         }
-        .tab-btn.active { 
-            background: white; 
-            color: var(--primary); 
-            font-weight: 800;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-        }
+        .tab-btn.active { background: white; color: var(--primary); font-weight: 800; }
 
         .table-container { 
             width: 100%; 
             background: #fff; 
-            border-radius: 20px; 
+            border-radius: 16px; 
             border: 1px solid #e2e8f0;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             overflow-y: auto; 
-            max-height: 320px; 
-            -webkit-overflow-scrolling: touch; 
+            max-height: 250px; 
         }
         
-        .leaderboard-table { width: 100%; border-collapse: collapse; position: relative; }
-        .leaderboard-table thead { position: sticky; top: 0; z-index: 2; }
-        .leaderboard-table th { 
-            padding: 12px; background: #f8fafc; color: var(--text-muted); 
-            font-size: 11px; text-transform: uppercase; 
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .leaderboard-table td { padding: 14px 12px; border-top: 1px solid #f1f5f9; font-size: 14px; }
+        .leaderboard-table { width: 100%; border-collapse: collapse; }
+        .leaderboard-table th { padding: 10px; background: #f8fafc; font-size: 10px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+        .leaderboard-table td { padding: 12px 10px; border-top: 1px solid #f1f5f9; font-size: 13px; }
 
-        #shopList, #radioList { max-height: 400px; overflow-y: auto; padding: 5px; }
+        #shopList, #radioList { max-height: 350px; overflow-y: auto; padding: 2px; }
         .shop-item, .radio-item {
-            display: flex; align-items: center; gap: 12px;
-            background: white; padding: 12px; border-radius: 20px;
-            margin-bottom: 10px; border: 1px solid #e2e8f0;
-            transition: transform 0.2s;
+            display: flex; align-items: center; gap: 10px;
+            background: white; padding: 10px; border-radius: 16px;
+            margin-bottom: 8px; border: 1px solid #e2e8f0;
         }
-        .shop-img { width: 55px; height: 55px; border-radius: 18px; object-fit: cover; border: 2px solid #f1f5f9; }
+        .shop-img { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; }
         .shop-info { flex: 1; text-align: left; }
-        .shop-name { font-weight: 800; font-size: 14px; }
-        .shop-price { font-size: 12px; color: #d97706; font-weight: 700; display: flex; align-items: center; gap: 3px; }
-        .btn-buy-small { width: auto; padding: 10px 15px; font-size: 12px; margin: 0; box-shadow: 0 3px 0px var(--primary-dark); }
+        .shop-name { font-weight: 800; font-size: 13px; }
+        .shop-price { font-size: 11px; color: #d97706; font-weight: 700; }
+        .btn-buy-small { width: auto; padding: 8px 12px; font-size: 11px; margin: 0; }
 
-        .status-container { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px; }
+        .status-container { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 15px; }
         .macrame-badge {
-            background: #fffbeb; color: #92400e; padding: 6px 16px;
-            border-radius: 50px; font-size: 16px; font-weight: 800;
-            border: 2px solid #fef3c7; display: flex; align-items: center; gap: 6px;
+            background: #fffbeb; color: #92400e; padding: 5px 14px;
+            border-radius: 50px; font-size: 15px; font-weight: 800;
+            border: 2px solid #fef3c7; display: flex; align-items: center; gap: 5px;
         }
         .online-badge {
-            background: #f0fdf4; color: #166534; padding: 4px 12px;
-            border-radius: 50px; font-size: 12px; font-weight: 600;
-            border: 1px solid #dcfce7; display: flex; align-items: center; gap: 5px;
+            background: #f0fdf4; color: #166534; padding: 3px 10px;
+            border-radius: 50px; font-size: 11px; font-weight: 600;
+            border: 1px solid #dcfce7; display: flex; align-items: center; gap: 4px;
         }
-        .online-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
+        .online-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
         
-        .radio-btn {
-            background: #8b5cf6;
-            box-shadow: 0 4px 0px #6d28d9;
-        }
-        .radio-btn.playing {
-            background: #ef4444;
-            box-shadow: 0 4px 0px #b91c1c;
-        }
+        .radio-btn.playing { background: #ef4444; box-shadow: 0 4px 0px #b91c1c; }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
@@ -236,10 +215,10 @@
                 <span id="boostIcon" style="display:none">🔥</span>
                 🧶 <span id="macrameCount">0</span>
             </div>
-            <div id="activeBoostTimer" style="display:none; color:#ef4444; font-size:12px; font-weight:800;">x2🧶: <span id="bTime">0:00</span></div>
+            <div id="activeBoostTimer" style="display:none; color:#ef4444; font-size:11px; font-weight:800;">x2🧶: <span id="bTime">0:00</span></div>
             <div class="online-badge">
                 <span class="online-dot"></span>
-                <span id="onlineCount">...</span> игрока онлайн
+                <span id="onlineCount">...</span> онлайн
             </div>
         </div>
         
@@ -248,28 +227,28 @@
         <div id="authSection">
             <input id="loginName" type="text" placeholder="Ваш ник" maxlength="15">
             <input id="loginPass" type="password" placeholder="Пароль">
-            <p id="authError" style="color: #ef4444; font-size: 12px; margin: -5px 0 10px 0; display: none;"></p>
-            <button onclick="handleAuth()">Войти в игру</button>
+            <p id="authError" style="color: #ef4444; font-size: 11px; margin: -5px 0 10px 0; display: none;"></p>
+            <button onclick="handleAuth()">Войти</button>
         </div>
 
         <div id="gameSection" style="display: none;">
-            <p style="margin: 0 0 15px 0; color: var(--text-muted)">Готов, <b id="welcomeText" style="color: var(--primary)"></b>?</p>
+            <p style="margin: 0 0 10px 0; color: var(--text-muted); font-size: 14px;">Готов, <b id="welcomeText" style="color: var(--primary)"></b>?</p>
             <button onclick="startGame()" class="btn-play">🚀 ИГРАТЬ</button>
             <button onclick="openShop()">🛒 Магазин</button>
             <button onclick="showLeaderboard()">🏆 Лидеры</button>
             <button onclick="openRadio()">📻 Радио</button>
-            <button onclick="logout()" style="background: transparent; color: #94a3b8; box-shadow: none; font-size: 13px; text-decoration: underline; margin-top:10px;">Выйти</button>
+            <button onclick="logout()" style="background: transparent; color: #94a3b8; box-shadow: none; font-size: 12px; text-decoration: underline; margin-top:5px;">Выйти</button>
         </div>
     </div>
     
     <a href="https://t.me/+godxyKIhKEs3Zjhi" target="_blank" style="text-decoration: none; width: 100%; max-width: 350px;">
-        <button class="btn-tg">📢 Telegram Канал</button>
+        <button class="btn-tg">📢 Telegram</button>
     </a>
 </div>
 
 <div id="shop" class="overlay" style="display: none;">
-    <div class="menu-card" style="max-width: 380px;">
-        <h2 style="margin-top:0">Магазин</h2>
+    <div class="menu-card">
+        <h2 style="margin:0 0 10px 0; font-size: 20px;">Магазин</h2>
         <div class="tabs-container">
             <button id="tabSkins" class="tab-btn active" onclick="renderShop('skins')">Скины</button>
             <button id="tabBoosts" class="tab-btn" onclick="renderShop('boosts')">Бустеры</button>
@@ -280,8 +259,8 @@
 </div>
 
 <div id="radio" class="overlay" style="display: none;">
-    <div class="menu-card" style="max-width: 380px;">
-        <h2 style="margin-top:0">📻 Радио</h2>
+    <div class="menu-card">
+        <h2 style="margin:0 0 10px 0; font-size: 20px;">📻 Радио</h2>
         <div id="radioList">
             <div class="radio-item">
                 <div class="shop-info">
@@ -303,8 +282,8 @@
 </div>
 
 <div id="leaderboard" class="overlay" style="display: none;">
-    <div class="menu-card" style="max-width: 380px;">
-        <h2 style="margin-top:0">🏆 Зал славы</h2>
+    <div class="menu-card">
+        <h2 style="margin:0 0 10px 0; font-size: 20px;">🏆 Зал славы</h2>
         <div class="tabs-container">
             <button id="btnRec" class="tab-btn active" onclick="loadTab('score')">Рекорды</button>
             <button id="btnSum" class="tab-btn" onclick="loadTab('total_score')">Всего</button>
@@ -323,12 +302,11 @@
 
 <div id="gameOver" class="overlay" style="display: none;">
     <div class="menu-card">
-        <h1 id="gameOverEmoji" style="font-size: 50px; margin:0">😈</h1>
-        <h2 id="gameOverTitle" style="margin-bottom:5px">Тебя поймали!</h2>
-        <p style="margin:5px 0; color:var(--text-muted)">Награда🧶: <b id="addedMacrame" style="color:#10b981">+0</b> <span id="boostIndicator" style="color:#f59e0b; font-weight:800"></span></p>
-        <div style="background:#f8fafc; padding:15px; border-radius:18px; margin: 15px 0;">
-            <span style="display:block; font-size:12px; color:var(--text-muted); text-transform:uppercase">Результат</span>
-            <b id="finalScore" style="font-size: 32px; color: var(--primary)">0</b>
+        <h1 id="gameOverEmoji" style="font-size: 40px; margin:0">😈</h1>
+        <h2 id="gameOverTitle" style="font-size: 18px; margin-bottom:5px">Тебя поймали!</h2>
+        <p style="margin:5px 0; color:var(--text-muted); font-size: 14px;">Награда🧶: <b id="addedMacrame" style="color:#10b981">+0</b> <span id="boostIndicator" style="color:#f59e0b; font-weight:800"></span></p>
+        <div style="background:#f8fafc; padding:12px; border-radius:14px; margin: 10px 0;">
+            <b id="finalScore" style="font-size: 28px; color: var(--primary)">0</b>
         </div>
         <button onclick="restart()" class="btn-play">🔥 ПОВТОРИТЬ</button>
         <button onclick="backToMenu()" style="background:#64748b; box-shadow: 0 4px 0px #475569;">В МЕНЮ</button>
@@ -465,7 +443,7 @@ async function spinRoulette() {
     isSpinning = true; totalMacrame -= 2000; updateMacrameUI();
     const resContainer = document.getElementById("rouletteResult"), rouletteImgs = ["дмитро.jpg", "будко.png", "natalia.jpg"];
     let i = 0;
-    const anim = setInterval(() => { resContainer.innerHTML = `<img src="${rouletteImgs[i % rouletteImgs.length]}" class="roulette-img" style="width:60px;height:60px;border-radius:10px;">`; i++; }, 100);
+    const anim = setInterval(() => { resContainer.innerHTML = `<img src="${rouletteImgs[i % rouletteImgs.length]}" style="width:60px;height:60px;border-radius:10px;">`; i++; }, 100);
     setTimeout(async () => {
         clearInterval(anim);
         const winId = Math.random() < 0.75 ? "dmitro" : "budko", skin = SKINS[winId];
@@ -484,13 +462,13 @@ function renderShop(tab) {
     document.getElementById("tabSkins").className = tab === 'skins' ? 'tab-btn active' : 'tab-btn';
     document.getElementById("tabBoosts").className = tab === 'boosts' ? 'tab-btn active' : 'tab-btn';
     if (tab === 'skins') {
-        container.innerHTML = `<div style="background:#fff7ed; padding:15px; border-radius:18px; border:2px dashed #fbbf24; margin-bottom:15px;"><div style="font-weight:900; color:#9a3412; font-size:12px; text-transform:uppercase; margin-bottom:10px;">🎰 СЛУЧАЙНЫЙ СКИН</div><div id="rouletteResult" style="height:80px; display:flex; align-items:center; justify-content:center;">🧶</div><button onclick="spinRoulette()" style="background:#f59e0b; box-shadow:0 4px 0px #b45309;" ${isSpinning ? 'disabled' : ''}>${isSpinning ? "УДАЧА..." : "КРУТИТЬ (2000🧶)"}</button></div>`;
+        container.innerHTML = `<div style="background:#fff7ed; padding:12px; border-radius:18px; border:2px dashed #fbbf24; margin-bottom:12px;"><div style="font-weight:900; color:#9a3412; font-size:11px; text-transform:uppercase; margin-bottom:8px;">🎰 СЛУЧАЙНЫЙ СКИН</div><div id="rouletteResult" style="height:70px; display:flex; align-items:center; justify-content:center;">🧶</div><button onclick="spinRoulette()" style="background:#f59e0b; box-shadow:0 4px 0px #b45309; padding:10px;" ${isSpinning ? 'disabled' : ''}>${isSpinning ? "УДАЧА..." : "КРУТИТЬ (2000🧶)"}</button></div>`;
         Object.keys(SKINS).forEach(id => {
             const s = SKINS[id], isOwned = ownedSkins.includes(id), isCurrent = currentSkin === id;
-            container.innerHTML += `<div class="shop-item"><img src="${s.img}" class="shop-img"><div class="shop-info"><div class="shop-name">${s.name}</div><div class="shop-price">${isOwned ? "✅ У вас есть" : "💰 "+s.price}</div></div><button class="btn-buy-small" onclick="${isOwned ? `selectSkin('${id}')` : `buySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>${isCurrent ? "АКТИВЕН" : (isOwned ? "ВЫБРАТЬ" : "КУПИТЬ")}</button></div>`;
+            container.innerHTML += `<div class="shop-item"><img src="${s.img}" class="shop-img"><div class="shop-info"><div class="shop-name">${s.name}</div><div class="shop-price">${isOwned ? "✅ Есть" : "💰 "+s.price}</div></div><button class="btn-buy-small" onclick="${isOwned ? `selectSkin('${id}')` : `buySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>${isCurrent ? "ВЫБРАН" : (isOwned ? "ВЗЯТЬ" : "КУПИТЬ")}</button></div>`;
         });
     } else {
-        container.innerHTML = `<div class="shop-item"><div class="shop-info"><div class="shop-name">⚡️ БУСТЕР X2</div><div class="shop-price">1250 🧶 (7 МИНУТ)</div></div><button class="btn-buy-small" onclick="buyBooster()">КУПИТЬ</button></div><div style="background:#f1f5f9; padding:20px; border-radius:18px; margin-top:20px;"><div style="font-weight:900; color:#475569;">ЗАПАСЫ: ${boostersCount} ШТ.</div><button onclick="activateBooster()" style="background:#10b981; box-shadow:0 4px 0px #047857;" ${boostersCount === 0 ? 'disabled' : ''}>АКТИВИРОВАТЬ</button></div>`;
+        container.innerHTML = `<div class="shop-item"><div class="shop-info"><div class="shop-name">⚡️ БУСТЕР X2</div><div class="shop-price">1250 🧶 (7 МИНУТ)</div></div><button class="btn-buy-small" onclick="buyBooster()">КУПИТЬ</button></div><div style="background:#f1f5f9; padding:15px; border-radius:18px; margin-top:15px;"><div style="font-weight:800; color:#475569; font-size:13px;">ЗАПАСЫ: ${boostersCount} ШТ.</div><button onclick="activateBooster()" style="background:#10b981; box-shadow:0 4px 0px #047857;" ${boostersCount === 0 ? 'disabled' : ''}>АКТИВИРОВАТЬ</button></div>`;
     }
 }
 
@@ -548,7 +526,7 @@ function update() {
             if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
             if (p.type === "shield") { hasShield = true; }
             score += {common:1, rare:1, yellow:1, epic:3, green:5, shield:5}[p.type];
-            document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
+            document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>(x2)</span>" : "");
             points.splice(i, 1); spawnPoint(); 
         }
     });
@@ -579,7 +557,7 @@ async function loadTab(mode) {
 
 function startGame() {
     document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; hasShield = false; enemyFreezeTimer = 0;
-    document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>(x2🧶)</span>" : "");
+    document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>(x2)</span>" : "");
     for(let i=0; i<9; i++) spawnPoint(); running = true; update();
 }
 
