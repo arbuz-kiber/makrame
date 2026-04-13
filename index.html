@@ -939,7 +939,7 @@ async function initOnline() {
 
 // GAME ENGINE
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
-let score = 0, running = false, slowTimer = 0, points = [], hasShield = false, enemyFreezeTimer = 0;
+let score = 0, running = false, slowTimer = 0, points = [], shieldCount = 0, enemyFreezeTimer = 0;
 let comboMultiplier = 1, comboTimer = 0; // x2 orb combo system
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
 const playerImg = new Image(); playerImg.src = "игрок.jpg";
@@ -997,7 +997,7 @@ function update() {
                 triggerComboFlash(comboMultiplier);
             } else {
                 if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
-                if (p.type === "shield") { hasShield = true; }
+                if (p.type === "shield") { shieldCount++; }
                 const basePoints = {common:1, rare:1, yellow:1, epic:3, green:5, shield:5}[p.type];
                 score += basePoints * comboMultiplier;
             }
@@ -1005,7 +1005,16 @@ function update() {
             points.splice(i, 1); spawnPoint(); 
         }
     });
-    if (hasShield) { ctx.beginPath(); ctx.arc(player.x, player.y, player.r + 10, 0, Math.PI * 2); ctx.fillStyle = "rgba(59, 130, 246, 0.3)"; ctx.fill(); ctx.strokeStyle = "rgba(59, 130, 246, 0.8)"; ctx.lineWidth = 3; ctx.stroke(); }
+    if (shieldCount > 0) {
+        ctx.beginPath(); ctx.arc(player.x, player.y, player.r + 10, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(59, 130, 246, 0.3)"; ctx.fill();
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
+        if (shieldCount > 1) {
+            ctx.fillStyle = "#fff"; ctx.font = "bold 13px Inter,sans-serif";
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(shieldCount, player.x + player.r + 6, player.y - player.r - 6);
+        }
+    }
     
     ctx.save();
     ctx.beginPath();
@@ -1024,7 +1033,7 @@ function update() {
 
     let distToEnemy = Math.hypot(player.x - enemy.x, player.y - enemy.y);
     if (distToEnemy < player.r + enemy.r * 0.85) {
-        if (hasShield) { hasShield = false; enemyFreezeTimer = 175; triggerFreeze(); const side = Math.floor(Math.random() * 4); if(side === 0) { enemy.x = 0; enemy.y = Math.random() * canvas.height; } else if(side === 1) { enemy.x = canvas.width; enemy.y = Math.random() * canvas.height; } else if(side === 2) { enemy.x = Math.random() * canvas.width; enemy.y = 0; } else { enemy.x = Math.random() * canvas.width; enemy.y = canvas.height; } requestAnimationFrame(update); } 
+        if (shieldCount > 0) { shieldCount--; enemyFreezeTimer = 175; triggerFreeze(); const side = Math.floor(Math.random() * 4); if(side === 0) { enemy.x = 0; enemy.y = Math.random() * canvas.height; } else if(side === 1) { enemy.x = canvas.width; enemy.y = Math.random() * canvas.height; } else if(side === 2) { enemy.x = Math.random() * canvas.width; enemy.y = 0; } else { enemy.x = Math.random() * canvas.width; enemy.y = canvas.height; } requestAnimationFrame(update); } 
         else { gameOver(); }
     } else requestAnimationFrame(update);
 }
@@ -1222,7 +1231,7 @@ function closeProfile() {
 
 function startGame() {
     gameStartTime = Date.now();
-    document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; hasShield = false; enemyFreezeTimer = 0;
+    document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; shieldCount = 0; enemyFreezeTimer = 0;
     comboMultiplier = 1; comboTimer = 0;
     document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
     for (let i = 0; i < 9; i++) spawnPoint(); running = true; update();
