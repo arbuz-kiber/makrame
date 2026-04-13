@@ -24,7 +24,6 @@
             overflow: hidden; 
             background: var(--bg-dark); 
             font-family: 'Inter', -apple-system, sans-serif; 
-            /* Разрешаем скролл по умолчанию, блокируем скриптом при игре */
             touch-action: pan-x pan-y; 
             color: var(--text-main);
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -201,6 +200,25 @@
             border: 1px solid #dcfce7; display: flex; align-items: center; gap: 4px;
         }
         .online-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+
+        .radio-edition-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--primary);
+            text-transform: uppercase;
+            text-align: left;
+            margin: 10px 0 5px 5px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .radio-edition-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
         
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -266,6 +284,7 @@
     <div class="menu-card">
         <h2 style="margin:0 0 10px 0; font-size: 20px;">📻 Радио</h2>
         <div id="radioList">
+            <div class="radio-edition-title">Наталия Edition</div>
             <div class="radio-item">
                 <div class="shop-info">
                     <div class="shop-name">Technologia Phonk</div>
@@ -273,6 +292,23 @@
                 </div>
                 <button id="btn-song1" class="btn-buy-small radio-btn" onclick="toggleSong('phonk.mp3', 'btn-song1')">ИГРАТЬ</button>
             </div>
+            <div class="radio-edition-title">Дмитро Edition</div>
+            <div class="radio-item">
+                <div class="shop-info">
+                    <div class="shop-name">ЕНКАРАПІСТА</div>
+                    <div class="shop-price">enkarapista.mp3</div>
+                </div>
+                <button id="btn-song-dm" class="btn-buy-small radio-btn" onclick="toggleSong('enkarapista.mp3', 'btn-song-dm')">ИГРАТЬ</button>
+            </div>
+            <div class="radio-edition-title">Будко Edition</div>
+            <div class="radio-item">
+                <div class="shop-info">
+                    <div class="shop-name">???</div>
+                    <div class="shop-price">Неизвестно</div>
+                </div>
+                <button class="btn-buy-small" style="background:#cbd5e1; box-shadow:none; cursor:default;" disabled>???</button>
+            </div>
+            <div class="radio-edition-title">Остальное</div>
             <div class="radio-item">
                 <div class="shop-info">
                     <div class="shop-name">Пообещай</div>
@@ -330,7 +366,7 @@ let currentAudio = null;
 
 const SKINS = {
     "natalia": { name: "Наталия", img: "natalia.jpg", price: 0, title: "Побег от Наталии", emoji: "😈" },
-    "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🥸", refund: 800 },
+    "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🌍", refund: 800 },
     "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Оксаны", emoji: "👺", refund: 2500 }
 };
 
@@ -492,7 +528,7 @@ async function initOnline() {
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
 let score = 0, running = false, slowTimer = 0, points = [], hasShield = false, enemyFreezeTimer = 0;
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
-const playerImg = new Image(); playerImg.src = "https://cdn-icons-png.flaticon.com/512/1946/1946429.png";
+const playerImg = new Image(); playerImg.src = "игрок.jpg";
 const enemyImg = new Image(); 
 
 function spawnPoint() {
@@ -522,11 +558,24 @@ function update() {
         }
     });
     if (hasShield) { ctx.beginPath(); ctx.arc(player.x, player.y, player.r + 10, 0, Math.PI * 2); ctx.fillStyle = "rgba(59, 130, 246, 0.3)"; ctx.fill(); ctx.strokeStyle = "rgba(59, 130, 246, 0.8)"; ctx.lineWidth = 3; ctx.stroke(); }
-    ctx.drawImage(playerImg, player.x - player.r, player.y - player.r, player.r*2, player.r*2);
-    ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI*2); ctx.clip();
-    ctx.drawImage(enemyImg, enemy.x - enemy.r, enemy.y - enemy.r, enemy.r*2, enemy.r*2); 
+    
+    // Отрисовка игрока кругом
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(playerImg, player.x - player.r, player.y - player.r, player.r * 2, player.r * 2);
+    ctx.restore();
+
+    // Отрисовка врага кругом
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(enemyImg, enemy.x - enemy.r, enemy.y - enemy.r, enemy.r * 2, enemy.r * 2); 
     if (enemyFreezeTimer > 0) { ctx.fillStyle = "rgba(135, 206, 250, 0.5)"; ctx.fillRect(enemy.x - enemy.r, enemy.y - enemy.r, enemy.r * 2, enemy.r * 2); }
     ctx.restore();
+
     let distToEnemy = Math.hypot(player.x - enemy.x, player.y - enemy.y);
     if (distToEnemy < player.r + enemy.r * 0.85) {
         if (hasShield) { hasShield = false; enemyFreezeTimer = 175; triggerFreeze(); const side = Math.floor(Math.random() * 4); if(side === 0) { enemy.x = 0; enemy.y = Math.random() * canvas.height; } else if(side === 1) { enemy.x = canvas.width; enemy.y = Math.random() * canvas.height; } else if(side === 2) { enemy.x = Math.random() * canvas.width; enemy.y = 0; } else { enemy.x = Math.random() * canvas.width; enemy.y = canvas.height; } requestAnimationFrame(update); } 
