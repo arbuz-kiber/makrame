@@ -489,6 +489,10 @@
             color: var(--text-muted); font-size: 13px;
         }
 
+        @keyframes comboGlow {
+            from { box-shadow: 0 0 8px rgba(255,200,0,0.3); border-color: rgba(255,200,0,0.3); }
+            to   { box-shadow: 0 0 18px rgba(255,100,0,0.6); border-color: rgba(255,100,0,0.5); }
+        }
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -499,6 +503,21 @@
 
 <div id="score">Очки: 0</div>
 <div id="slowStatus">❄️ <span id="slowFrames">0</span></div>
+<div id="comboHUD" style="
+    position:fixed; top:62px; left:18px; z-index:2;
+    display:none; align-items:center; gap:8px;
+    background:rgba(13,13,20,0.85); backdrop-filter:blur(12px);
+    padding:6px 14px; border-radius:50px;
+    border:1px solid rgba(255,200,0,0.3);
+    font-family:'Unbounded',sans-serif; font-weight:900;
+    font-size:14px; color:#fff; letter-spacing:-0.5px;
+    animation: comboGlow 0.6s ease-in-out infinite alternate;
+">
+    <span id="comboLabel">x2</span>
+    <span id="comboBar" style="display:inline-block; height:5px; width:60px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden; vertical-align:middle;">
+        <span id="comboBarFill" style="display:block; height:100%; width:100%; background:linear-gradient(90deg,#ffd700,#ff6b35); border-radius:3px; transition:width 0.1s linear;"></span>
+    </span>
+</div>
 <div id="freezeOverlay">🥶</div>
 
 <div id="menu" class="overlay">
@@ -736,15 +755,23 @@ function loginSuccess(user, save = true) {
     updateMacrameUI(); applyEnemySkin(); applyPlayerSkin();
 }
 
+let gameStartTime = null;
+
 async function saveResults(s) {
     if (!currentID) return;
     const isBoosted = isBoostActive(), multiplier = isBoosted ? 2 : 1, addedPoints = s * multiplier;
+    const durationSeconds = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
     const { data } = await supabaseClient.from("leaderboard").select("*").eq("id", currentID).single();
     if (data) {
         const newMacrameTotal = (data.macrame_points || 0) + addedPoints;
         const newTotalScore = (data.total_score || 0) + s;
         const newBestScore = Math.max(s, data.score || 0);
-        await supabaseClient.from("leaderboard").update({ score: newBestScore, total_score: newTotalScore, macrame_points: newMacrameTotal }).eq("id", currentID);
+        await supabaseClient.from("leaderboard").update({
+            score: newBestScore, total_score: newTotalScore, macrame_points: newMacrameTotal,
+            last_game_at: new Date().toISOString(),
+            last_game_score: s,
+            last_game_duration_seconds: durationSeconds
+        }).eq("id", currentID);
         totalMacrame = newMacrameTotal; updateMacrameUI();
         document.getElementById("addedMacrame").innerText = "+" + addedPoints;
         document.getElementById("boostIndicator").innerText = isBoosted ? "(x2🧶)" : "";
@@ -899,15 +926,17 @@ async function initOnline() {
 // GAME ENGINE
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
 let score = 0, running = false, slowTimer = 0, points = [], hasShield = false, enemyFreezeTimer = 0;
+let comboMultiplier = 1, comboTimer = 0; // x2 orb combo system
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
 const playerImg = new Image(); playerImg.src = "игрок.jpg";
 const enemyImg = new Image(); 
 
 function spawnPoint() {
     const r = Math.random(); let type = "common";
-    if (r > 0.98) type = "shield"; else if (r > 0.94) type = "green"; 
+    if (r > 0.995) type = "combo";
+    else if (r > 0.98) type = "shield"; else if (r > 0.94) type = "green"; 
     else if (r > 0.88) type = "yellow"; else if (r > 0.80) type = "epic"; else if (r > 0.70) type = "rare";
-    points.push({ x: Math.random() * (canvas.width - 50) + 25, y: Math.random() * (canvas.height - 50) + 25, r: canvas.width * 0.025, type });
+    points.push({ x: Math.random() * (canvas.width - 50) + 25, y: Math.random() * (canvas.height - 50) + 25, r: canvas.width * (type === "combo" ? 0.033 : 0.025), type });
 }
 
 function update() {
@@ -918,14 +947,47 @@ function update() {
     else { document.getElementById("slowStatus").style.display = "none"; }
     if (enemyFreezeTimer > 0) { enemyFreezeTimer--; } 
     else { let dx = player.x - enemy.x, dy = player.y - enemy.y, dist = Math.hypot(dx, dy); if (dist > 1) { enemy.x += (dx / dist) * speed; enemy.y += (dy / dist) * speed; } }
+    // Combo timer tick
+    if (comboTimer > 0) {
+        comboTimer--;
+        if (comboTimer === 0) { comboMultiplier = 1; updateScoreHUD(); }
+    }
+
     points.forEach((p, i) => {
-        ctx.beginPath(); ctx.fillStyle = {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
+        ctx.beginPath();
+        if (p.type === "combo") {
+            // Animated rainbow glow for combo orb
+            const t = Date.now() / 300;
+            const hue = (t * 60) % 360;
+            ctx.shadowBlur = 18; ctx.shadowColor = `hsl(${hue},100%,60%)`;
+            ctx.fillStyle = `hsl(${hue},100%,60%)`;
+        } else {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
+        }
         ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Draw combo orb inner "x2" label
+        if (p.type === "combo") {
+            const label = comboTimer > 0 ? "x" + (comboMultiplier * 2) : "x2";
+            ctx.fillStyle = "#fff"; ctx.font = `bold ${p.r * 0.85}px Unbounded,sans-serif`;
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(label, p.x, p.y);
+        }
+
         if (Math.hypot(player.x - p.x, player.y - p.y) < player.r + p.r) {
-            if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
-            if (p.type === "shield") { hasShield = true; }
-            score += {common:1, rare:1, yellow:1, epic:3, green:5, shield:5}[p.type];
-            document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
+            if (p.type === "combo") {
+                comboMultiplier = comboTimer > 0 ? comboMultiplier * 2 : 2;
+                comboTimer = Math.floor((18 + Math.random() * 13) * 60); // 18-30 sec at 60fps
+                triggerComboFlash(comboMultiplier);
+            } else {
+                if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
+                if (p.type === "shield") { hasShield = true; }
+                const basePoints = {common:1, rare:1, yellow:1, epic:3, green:5, shield:5}[p.type];
+                score += basePoints * comboMultiplier;
+            }
+            updateScoreHUD();
             points.splice(i, 1); spawnPoint(); 
         }
     });
@@ -951,6 +1013,37 @@ function update() {
         if (hasShield) { hasShield = false; enemyFreezeTimer = 175; triggerFreeze(); const side = Math.floor(Math.random() * 4); if(side === 0) { enemy.x = 0; enemy.y = Math.random() * canvas.height; } else if(side === 1) { enemy.x = canvas.width; enemy.y = Math.random() * canvas.height; } else if(side === 2) { enemy.x = Math.random() * canvas.width; enemy.y = 0; } else { enemy.x = Math.random() * canvas.width; enemy.y = canvas.height; } requestAnimationFrame(update); } 
         else { gameOver(); }
     } else requestAnimationFrame(update);
+}
+
+function updateScoreHUD() {
+    const comboSuffix = comboMultiplier > 1 ? ` <span style='color:#ffd700; font-size:12px;'>✦x${comboMultiplier}</span>` : '';
+    const boostSuffix = isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : '';
+    document.getElementById("score").innerHTML = "Очки: " + score + comboSuffix + boostSuffix;
+    const hud = document.getElementById("comboHUD");
+    if (comboMultiplier > 1 && comboTimer > 0) {
+        hud.style.display = "flex";
+        document.getElementById("comboLabel").innerText = "x" + comboMultiplier;
+        const maxFrames = 30 * 60; // max 30s
+        const pct = Math.min(100, (comboTimer / maxFrames) * 100);
+        document.getElementById("comboBarFill").style.width = pct + "%";
+        // Color shifts with multiplier
+        const colors = ["#ffd700,#ff6b35","#ff6b35,#ff0080","#ff0080,#a855f7","#a855f7,#00ffff"];
+        const ci = Math.min(Math.log2(comboMultiplier) - 1, colors.length - 1);
+        document.getElementById("comboBarFill").style.background = `linear-gradient(90deg,${colors[Math.floor(ci)]})`;
+    } else {
+        hud.style.display = "none";
+    }
+}
+
+function triggerComboFlash(mult) {
+    const el = document.getElementById("freezeOverlay");
+    const emojis = ["⚡","🔥","💥","🌈","👾"];
+    el.innerText = emojis[Math.min(Math.floor(Math.log2(mult)) - 1, emojis.length - 1)];
+    el.style.opacity = "1"; el.style.transform = "scale(0.4)";
+    setTimeout(() => { el.style.transition = "all 0.5s"; el.style.transform = "scale(1.8)"; el.style.opacity = "0"; }, 30);
+    el.style.transition = "";
+    // restore emoji for freeze
+    setTimeout(() => { el.innerText = "🥶"; }, 600);
 }
 
 function triggerFreeze() { const el = document.getElementById("freezeOverlay"); el.style.opacity = "1"; el.style.transform = "scale(0.5)"; setTimeout(() => { el.style.transition = "all 0.5s"; el.style.transform = "scale(1.5)"; el.style.opacity = "0"; }, 50); el.style.transition = ""; }
@@ -985,7 +1078,7 @@ async function openProfile(name) {
 
     // Fetch full profile data
     const { data: u } = await supabaseClient.from("leaderboard")
-        .select("name, score, total_score, macrame_points, boosters_count, current_skin, current_player_skin, owned_skins, owned_player_skins")
+        .select("name, score, total_score, macrame_points, boosters_count, current_skin, current_player_skin, owned_skins, owned_player_skins, last_game_at, last_game_score, last_game_duration_seconds")
         .eq("name", name).maybeSingle();
 
     // Fetch rank by score and total_score
@@ -1070,8 +1163,43 @@ async function openProfile(name) {
                 </div>
             </div>
         </div>
+
+        ${u.last_game_at ? `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border); border-radius:14px; padding:12px; margin-bottom:8px;">
+            <div class="stat-label" style="margin-bottom:8px;">🕹️ Последняя игра</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:10px; color:var(--text-dim); font-weight:600; margin-bottom:2px;">РЕЗУЛЬТАТ</div>
+                    <div style="font-family:'Unbounded',sans-serif; font-size:15px; font-weight:900; color:#c084fc;">${u.last_game_score ?? 0} <span style="font-size:10px; color:var(--text-muted); font-family:'Inter',sans-serif; font-weight:600;">очков</span></div>
+                </div>
+                <div>
+                    <div style="font-size:10px; color:var(--text-dim); font-weight:600; margin-bottom:2px;">ДЛИТЕЛЬНОСТЬ</div>
+                    <div style="font-family:'Unbounded',sans-serif; font-size:15px; font-weight:900; color:#6ee7b7;">${formatDuration(u.last_game_duration_seconds)}</div>
+                </div>
+                <div>
+                    <div style="font-size:10px; color:var(--text-dim); font-weight:600; margin-bottom:2px;">КОГДА</div>
+                    <div style="font-size:12px; font-weight:700; color:var(--text-muted);">${formatAgo(u.last_game_at)}</div>
+                </div>
+            </div>
+        </div>` : ''}
     `;
     content.style.display = "block";
+}
+
+function formatDuration(secs) {
+    if (!secs) return "0с";
+    const m = Math.floor(secs / 60), s = secs % 60;
+    return m > 0 ? `${m}м ${s}с` : `${s}с`;
+}
+
+function formatAgo(isoStr) {
+    if (!isoStr) return "—";
+    const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
+    if (diff < 60) return "только что";
+    if (diff < 3600) return `${Math.floor(diff/60)} мин. назад`;
+    if (diff < 86400) return `${Math.floor(diff/3600)} ч. назад`;
+    if (diff < 2592000) return `${Math.floor(diff/86400)} дн. назад`;
+    return new Date(isoStr).toLocaleDateString('ru');
 }
 
 function closeProfile() {
@@ -1079,7 +1207,9 @@ function closeProfile() {
 }
 
 function startGame() {
+    gameStartTime = Date.now();
     document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; hasShield = false; enemyFreezeTimer = 0;
+    comboMultiplier = 1; comboTimer = 0;
     document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
     for (let i = 0; i < 9; i++) spawnPoint(); running = true; update();
 }
