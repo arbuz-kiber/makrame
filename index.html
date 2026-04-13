@@ -4,49 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Побег от Наталии</title>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --bg-dark: #0f172a;
-            --bg-glass: rgba(255, 255, 255, 0.92);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --radius: 20px;
+            --primary: #7c3aed;
+            --primary-dark: #5b21b6;
+            --primary-glow: rgba(124, 58, 237, 0.35);
+            --accent: #f472b6;
+            --accent-dark: #db2777;
+            --green: #10b981;
+            --green-dark: #047857;
+            --bg: #0d0d14;
+            --bg2: #13131f;
+            --bg3: #1a1a2e;
+            --card: rgba(255,255,255,0.04);
+            --card-border: rgba(255,255,255,0.08);
+            --card-hover: rgba(255,255,255,0.07);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #475569;
+            --radius: 18px;
+            --radius-sm: 12px;
         }
+
+        * { box-sizing: border-box; }
 
         body { 
             margin: 0; 
             overflow: hidden; 
-            background: var(--bg-dark); 
-            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg); 
+            font-family: 'Inter', sans-serif; 
             touch-action: pan-x pan-y; 
-            color: var(--text-main);
+            color: var(--text);
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         canvas { display: block; }
 
+        /* HUD */
         #score { 
-            position: fixed; top: 20px; left: 20px; 
-            font-size: 18px; font-weight: 800; z-index: 2; 
-            color: var(--text-main); background: var(--bg-glass);
-            padding: 8px 16px; border-radius: 12px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.3);
+            position: fixed; top: 18px; left: 18px; 
+            font-size: 15px; font-weight: 800; z-index: 2; 
+            font-family: 'Unbounded', sans-serif;
+            color: #fff; background: rgba(13,13,20,0.8);
+            padding: 8px 16px; border-radius: 50px; 
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            letter-spacing: -0.5px;
         }
 
         #slowStatus { 
-            position: fixed; top: 20px; right: 20px; 
-            font-size: 16px; font-weight: bold; color: #3b82f6; 
-            display: none; z-index: 2; background: var(--bg-glass);
-            padding: 8px 16px; border-radius: 12px; border: 1px solid #bfdbfe;
-            backdrop-filter: blur(8px);
+            position: fixed; top: 18px; right: 18px; 
+            font-size: 14px; font-weight: 800; color: #93c5fd; 
+            display: none; z-index: 2; background: rgba(13,13,20,0.8);
+            padding: 8px 16px; border-radius: 50px;
+            border: 1px solid rgba(147,197,253,0.2);
+            backdrop-filter: blur(12px);
         }
 
         #freezeOverlay {
@@ -54,174 +69,318 @@
             font-size: 100px; pointer-events: none; z-index: 5; opacity: 0;
         }
 
+        /* OVERLAYS */
         .overlay { 
             position: fixed; inset: 0; 
-            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            background: var(--bg);
             display: flex; flex-direction: column; justify-content: center; 
-            align-items: center; gap: 15px; z-index: 10; padding: 16px; 
-            animation: fadeIn 0.4s ease-out;
+            align-items: center; gap: 12px; z-index: 10; padding: 16px; 
+            animation: fadeIn 0.3s ease-out;
             overflow-y: auto;
             touch-action: pan-y;
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .overlay::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 60% 40% at 20% 20%, rgba(124,58,237,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 80% 80%, rgba(244,114,182,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 
         .menu-card {
-            background: var(--bg-glass);
-            padding: 25px 20px;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: rgba(255,255,255,0.03);
+            padding: 28px 24px;
+            border-radius: 28px;
+            box-shadow: 0 0 0 1px var(--card-border), 0 40px 80px -20px rgba(0,0,0,0.8);
             width: 100%;
-            max-width: 350px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.6);
+            max-width: 360px;
+            backdrop-filter: blur(20px);
             text-align: center;
-            max-height: 85vh;
+            max-height: 88vh;
             display: flex;
             flex-direction: column;
             overflow-y: auto; 
             touch-action: pan-y; 
             -webkit-overflow-scrolling: touch;
+            position: relative;
+            z-index: 1;
         }
 
         @media (max-width: 480px) {
-            .menu-card { padding: 20px 15px; margin: auto; }
-            h1 { font-size: 26px !important; }
-            button { padding: 14px 18px !important; font-size: 15px !important; }
-            #score { top: 10px; left: 10px; font-size: 16px; }
-            #slowStatus { top: 10px; right: 10px; font-size: 14px; }
+            .menu-card { padding: 22px 16px; }
+            h1.game-title { font-size: 24px !important; }
         }
 
-        h1 { 
-            font-size: 32px; 
-            margin: 0 0 10px 0; 
-            background: linear-gradient(to right, var(--primary), var(--secondary));
+        /* TITLE */
+        h1.game-title { 
+            font-family: 'Unbounded', sans-serif;
+            font-size: 28px; 
+            margin: 0 0 4px 0; 
+            background: linear-gradient(135deg, #c084fc, #f472b6 50%, #fb923c);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 900;
             letter-spacing: -1px;
+            line-height: 1.2;
         }
 
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin: 0 0 20px 0;
+            font-weight: 500;
+        }
+
+        /* BUTTONS */
         button { 
             width: 100%;
-            padding: 16px 20px; 
-            font-size: 16px; font-weight: 700;
+            padding: 15px 20px; 
+            font-size: 14px; font-weight: 700;
             cursor: pointer; border: none; 
-            background: var(--primary); color: white; 
-            border-radius: 16px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 0px var(--primary-dark);
+            background: rgba(124,58,237,0.8);
+            color: white; 
+            border-radius: var(--radius);
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(124,58,237,0.4);
             margin-top: 8px;
             flex-shrink: 0;
             display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.2px;
+            position: relative;
+            overflow: hidden;
         }
 
-        button:active { transform: translateY(2px); box-shadow: 0 0px 0px var(--primary-dark); }
-        button:disabled { background: #cbd5e1; box-shadow: none; transform: none; cursor: not-allowed; }
+        button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        button:hover { background: rgba(124,58,237,0.95); transform: translateY(-1px); box-shadow: 0 8px 25px rgba(124,58,237,0.4); }
+        button:active { transform: translateY(1px); box-shadow: none; }
+        button:disabled { background: rgba(255,255,255,0.06); border-color: transparent; color: var(--text-dim); transform: none; box-shadow: none; cursor: not-allowed; }
 
         .btn-play { 
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-            box-shadow: 0 4px 0px #047857;
-            font-size: 18px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: rgba(16,185,129,0.4);
+            font-size: 16px; font-family: 'Unbounded', sans-serif; font-weight: 700; letter-spacing: -0.5px;
+            padding: 18px;
         }
+        .btn-play:hover { box-shadow: 0 8px 30px rgba(16,185,129,0.45); background: linear-gradient(135deg, #34d399, #10b981); }
 
-        .btn-tg { background: #0088cc !important; box-shadow: 0 4px 0px #006699 !important; }
+        .btn-tg { background: rgba(0,136,204,0.8) !important; border-color: rgba(0,136,204,0.4) !important; }
+        .btn-tg:hover { background: rgba(0,136,204,1) !important; box-shadow: 0 8px 25px rgba(0,136,204,0.4) !important; }
 
+        .btn-secondary {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--card-border);
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 10px;
+            margin-top: 4px;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.08); color: var(--text); box-shadow: none; }
+
+        .btn-back {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--card-border);
+            color: var(--text-muted);
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.09); color: var(--text); box-shadow: none; }
+
+        /* INPUTS */
         input { 
-            width: 100%; box-sizing: border-box;
-            padding: 14px; font-size: 16px; 
-            border: 2px solid #e2e8f0; border-radius: 16px; 
+            width: 100%;
+            padding: 14px 16px; font-size: 15px; 
+            border: 1px solid var(--card-border); border-radius: var(--radius); 
             outline: none; transition: all 0.2s;
-            background: rgba(255,255,255,0.7);
-            margin-bottom: 10px;
-            color: var(--text-main);
+            background: rgba(255,255,255,0.05);
+            margin-bottom: 8px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
         }
-        input:focus { border-color: var(--primary); background: #fff; }
+        input::placeholder { color: var(--text-dim); }
+        input:focus { border-color: rgba(124,58,237,0.6); background: rgba(124,58,237,0.06); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
 
+        /* TABS */
         .tabs-container { 
             display: flex; 
-            background: #f1f5f9;
+            background: rgba(255,255,255,0.04);
             padding: 4px;
-            border-radius: 14px;
-            gap: 4px; 
-            margin-bottom: 15px; 
+            border-radius: var(--radius-sm);
+            gap: 3px; 
+            margin-bottom: 14px; 
             flex-shrink: 0;
-            position: sticky; top: 0; z-index: 5;
+            border: 1px solid var(--card-border);
         }
         .tab-btn { 
             flex: 1; 
-            padding: 8px; 
-            font-size: 12px; 
+            padding: 8px 4px; 
+            font-size: 11px; 
+            font-weight: 700;
             background: transparent; 
             color: var(--text-muted); 
-            border-radius: 10px; 
+            border-radius: 8px; 
             margin: 0; 
             box-shadow: none !important;
+            border: none !important;
             transform: none !important;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
-        .tab-btn.active { background: white; color: var(--primary); font-weight: 800; }
+        .tab-btn:hover { background: rgba(255,255,255,0.06) !important; color: var(--text) !important; box-shadow: none !important; transform: none !important; }
+        .tab-btn.active { background: rgba(124,58,237,0.25) !important; color: #c084fc !important; border: 1px solid rgba(124,58,237,0.3) !important; }
 
+        /* LEADERBOARD TABLE */
         .table-container { 
             width: 100%; 
-            background: #fff; 
-            border-radius: 16px; 
-            border: 1px solid #e2e8f0;
+            background: rgba(255,255,255,0.02); 
+            border-radius: var(--radius);
+            border: 1px solid var(--card-border);
             margin-bottom: 10px;
             overflow-y: auto; 
-            max-height: 300px; 
+            max-height: 320px; 
             touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
         }
         
         .leaderboard-table { width: 100%; border-collapse: collapse; }
-        .leaderboard-table th { position: sticky; top: 0; z-index: 2; padding: 10px; background: #f8fafc; font-size: 10px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
-        .leaderboard-table td { padding: 12px 10px; border-top: 1px solid #f1f5f9; font-size: 13px; }
+        .leaderboard-table th { position: sticky; top: 0; z-index: 2; padding: 10px 12px; background: rgba(13,13,20,0.9); font-size: 10px; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--card-border); letter-spacing: 1px; font-weight: 700; }
+        .leaderboard-table td { padding: 11px 12px; border-top: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+        .leaderboard-table tr:hover td { background: rgba(255,255,255,0.02); }
 
-        #shopList, #radioList { flex: 1; overflow-y: auto; padding: 2px; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
-        .shop-item, .radio-item {
-            display: flex; align-items: center; gap: 10px;
-            background: white; padding: 10px; border-radius: 16px;
-            margin-bottom: 8px; border: 1px solid #e2e8f0;
+        /* SHOP ITEMS */
+        #shopList, #radioList { overflow-y: auto; padding: 2px; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+        
+        .shop-item {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            border: 1px solid var(--card-border);
+            transition: all 0.15s;
         }
-        .shop-img { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; }
+        .shop-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+        
+        .radio-item {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            border: 1px solid var(--card-border);
+        }
+        
+        .shop-img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 1px solid var(--card-border); }
         .shop-info { flex: 1; text-align: left; }
-        .shop-name { font-weight: 800; font-size: 13px; }
-        .shop-price { font-size: 11px; color: #d97706; font-weight: 700; }
-        .btn-buy-small { width: auto; padding: 8px 12px; font-size: 11px; margin: 0; }
+        .shop-name { font-weight: 800; font-size: 13px; color: var(--text); margin-bottom: 3px; }
+        .shop-price { font-size: 11px; color: #f59e0b; font-weight: 700; }
+        .shop-price.owned { color: var(--green); }
+        
+        .btn-buy-small { 
+            width: auto; padding: 8px 14px; font-size: 11px; margin: 0; 
+            border-radius: 10px; white-space: nowrap;
+            font-weight: 800; letter-spacing: 0.3px;
+            flex-shrink: 0;
+        }
 
-        .status-container { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 15px; }
+        /* STATUS BADGES */
+        .status-container { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 18px; }
+        
         .macrame-badge {
-            background: #fffbeb; color: #92400e; padding: 5px 14px;
-            border-radius: 50px; font-size: 15px; font-weight: 800;
-            border: 2px solid #fef3c7; display: flex; align-items: center; gap: 5px;
+            background: rgba(245,158,11,0.12);
+            color: #fbbf24;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 14px; font-weight: 800;
+            border: 1px solid rgba(245,158,11,0.25);
+            display: flex; align-items: center; gap: 6px;
+            font-family: 'Unbounded', sans-serif;
         }
-        .online-badge {
-            background: #f0fdf4; color: #166534; padding: 3px 10px;
-            border-radius: 50px; font-size: 11px; font-weight: 600;
-            border: 1px solid #dcfce7; display: flex; align-items: center; gap: 4px;
-        }
-        .online-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
 
+        .online-badge {
+            background: rgba(16,185,129,0.08);
+            color: #6ee7b7;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 11px; font-weight: 600;
+            border: 1px solid rgba(16,185,129,0.2);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .online-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        #activeBoostTimer { color: #f87171; font-size: 11px; font-weight: 800; display: none; }
+
+        /* RADIO SECTION TITLES */
         .radio-edition-title {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 900;
             color: var(--primary);
             text-transform: uppercase;
             text-align: left;
-            margin: 10px 0 5px 5px;
-            letter-spacing: 1px;
+            margin: 12px 0 6px 4px;
+            letter-spacing: 1.5px;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: #c084fc;
         }
         .radio-edition-title::after {
             content: "";
             flex: 1;
             height: 1px;
-            background: #e2e8f0;
+            background: var(--card-border);
         }
-        
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* DIVIDER */
+        .section-divider {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--text-dim); font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            margin: 16px 0 8px 0;
+        }
+        .section-divider::before, .section-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--card-border);
+        }
+
+        /* ROULETTE */
+        .roulette-card {
+            background: rgba(245,158,11,0.06);
+            padding: 14px;
+            border-radius: 20px;
+            border: 1px dashed rgba(245,158,11,0.3);
+            margin-bottom: 12px;
+        }
+        .roulette-label {
+            font-weight: 900; color: #fbbf24; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+
+        /* GAME OVER SCORE */
+        .score-display {
+            background: rgba(124,58,237,0.1);
+            border: 1px solid rgba(124,58,237,0.25);
+            padding: 16px;
+            border-radius: var(--radius);
+            margin: 10px 0;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body>
@@ -237,60 +396,67 @@
                 <span id="boostIcon" style="display:none">🔥</span>
                 🧶 <span id="macrameCount">0</span>
             </div>
-            <div id="activeBoostTimer" style="display:none; color:#ef4444; font-size:11px; font-weight:800;">x2🧶: <span id="bTime">0:00</span></div>
+            <div id="activeBoostTimer">x2🧶: <span id="bTime">0:00</span></div>
             <div class="online-badge">
                 <span class="online-dot"></span>
                 <span id="onlineCount">...</span> онлайн
             </div>
         </div>
         
-        <h1 id="mainTitle">Наталия 😈</h1>
+        <h1 id="mainTitle" class="game-title">Наталия 😈</h1>
+        <p class="subtitle">Убегай. Собирай. Выживай.</p>
         
         <div id="authSection">
             <input id="loginName" type="text" placeholder="Ваш ник" maxlength="15">
             <input id="loginPass" type="password" placeholder="Пароль">
-            <p id="authError" style="color: #ef4444; font-size: 11px; margin: -5px 0 10px 0; display: none;"></p>
-            <button onclick="handleAuth()">Войти</button>
+            <p id="authError" style="color: #f87171; font-size: 11px; margin: -4px 0 10px 0; display: none; text-align:left; padding-left:4px;"></p>
+            <button onclick="handleAuth()">🎮 Войти / Регистрация</button>
         </div>
 
         <div id="gameSection" style="display: none;">
-            <p style="margin: 0 0 10px 0; color: var(--text-muted); font-size: 14px;">Готов, <b id="welcomeText" style="color: var(--primary)"></b>?</p>
+            <p style="margin: 0 0 14px 0; color: var(--text-muted); font-size: 13px;">Готов, <b id="welcomeText" style="color: #c084fc"></b>?</p>
             <button onclick="startGame()" class="btn-play">🚀 ИГРАТЬ</button>
+            
+            <div class="section-divider">меню</div>
+            
             <button onclick="openShop()">🛒 Магазин</button>
-            <button onclick="showLeaderboard()">🏆 Лидеры</button>
+            <button onclick="showLeaderboard()">🏆 Лидерборд</button>
             <button onclick="openRadio()">📻 Радио</button>
-            <button onclick="logout()" style="background: transparent; color: #94a3b8; box-shadow: none; font-size: 12px; text-decoration: underline; margin-top:5px;">Выйти</button>
+            <button onclick="logout()" class="btn-secondary">Выйти из аккаунта</button>
         </div>
     </div>
     
-    <a href="https://t.me/+godxyKIhKEs3Zjhi" target="_blank" style="text-decoration: none; width: 100%; max-width: 350px;">
-        <button class="btn-tg">📢 Telegram</button>
+    <a href="https://t.me/+godxyKIhKEs3Zjhi" target="_blank" style="text-decoration: none; width: 100%; max-width: 360px; position: relative; z-index: 1;">
+        <button class="btn-tg">📢 Telegram-канал</button>
     </a>
 </div>
 
+<!-- SHOP -->
 <div id="shop" class="overlay" style="display: none;">
     <div class="menu-card">
-        <h2 style="margin:0 0 10px 0; font-size: 20px;">Магазин</h2>
+        <h2 style="margin:0 0 14px 0; font-size: 18px; font-family:'Unbounded',sans-serif; font-weight:900;">🛒 Магазин</h2>
         <div class="tabs-container">
-            <button id="tabSkins" class="tab-btn active" onclick="renderShop('skins')">Скины</button>
+            <button id="tabEnemy" class="tab-btn active" onclick="renderShop('enemy')">Враг</button>
+            <button id="tabPlayer" class="tab-btn" onclick="renderShop('player')">Игрок</button>
             <button id="tabBoosts" class="tab-btn" onclick="renderShop('boosts')">Бустеры</button>
         </div>
-        <div id="shopList"></div>
-        <button onclick="closeOverlay('shop')" style="background:#64748b; box-shadow: 0 4px 0px #475569; margin-top: 15px;">Назад</button>
+        <div id="shopList" style="overflow-y:auto; max-height: 52vh;"></div>
+        <button onclick="closeOverlay('shop')" class="btn-back" style="margin-top:12px;">← Назад</button>
     </div>
 </div>
 
+<!-- RADIO -->
 <div id="radio" class="overlay" style="display: none;">
     <div class="menu-card">
-        <h2 style="margin:0 0 10px 0; font-size: 20px;">📻 Радио</h2>
-        <div id="radioList">
+        <h2 style="margin:0 0 14px 0; font-size: 18px; font-family:'Unbounded',sans-serif; font-weight:900;">📻 Радио</h2>
+        <div id="radioList" style="overflow-y:auto; max-height: 55vh;">
             <div class="radio-edition-title">Наталия Edition</div>
             <div class="radio-item">
                 <div class="shop-info">
                     <div class="shop-name">Technologia Phonk</div>
                     <div class="shop-price">phonk.mp3</div>
                 </div>
-                <button id="btn-song1" class="btn-buy-small radio-btn" onclick="toggleSong('phonk.mp3', 'btn-song1')">ИГРАТЬ</button>
+                <button id="btn-song1" class="btn-buy-small radio-btn" onclick="toggleSong('phonk.mp3', 'btn-song1')">▶ ИГРАТЬ</button>
             </div>
             <div class="radio-edition-title">Дмитро Edition</div>
             <div class="radio-item">
@@ -298,7 +464,7 @@
                     <div class="shop-name">ЕНКАРАПІСТА</div>
                     <div class="shop-price">enkarapista.mp3</div>
                 </div>
-                <button id="btn-song-dm" class="btn-buy-small radio-btn" onclick="toggleSong('enkarapista.mp3', 'btn-song-dm')">ИГРАТЬ</button>
+                <button id="btn-song-dm" class="btn-buy-small radio-btn" onclick="toggleSong('enkarapista.mp3', 'btn-song-dm')">▶ ИГРАТЬ</button>
             </div>
             <div class="radio-edition-title">Будко Edition</div>
             <div class="radio-item">
@@ -306,7 +472,7 @@
                     <div class="shop-name">???</div>
                     <div class="shop-price">Неизвестно</div>
                 </div>
-                <button class="btn-buy-small" style="background:#cbd5e1; box-shadow:none; cursor:default;" disabled>???</button>
+                <button class="btn-buy-small" style="background:rgba(255,255,255,0.04); cursor:default; color:var(--text-dim);" disabled>???</button>
             </div>
             <div class="radio-edition-title">Остальное</div>
             <div class="radio-item">
@@ -314,16 +480,17 @@
                     <div class="shop-name">Пообещай</div>
                     <div class="shop-price">elixir.mp3</div>
                 </div>
-                <button id="btn-song2" class="btn-buy-small radio-btn" onclick="toggleSong('elixir.mp3', 'btn-song2')">ИГРАТЬ</button>
+                <button id="btn-song2" class="btn-buy-small radio-btn" onclick="toggleSong('elixir.mp3', 'btn-song2')">▶ ИГРАТЬ</button>
             </div>
         </div>
-        <button onclick="closeOverlay('radio')" style="background:#64748b; box-shadow: 0 4px 0px #475569; margin-top: 15px;">Назад</button>
+        <button onclick="closeOverlay('radio')" class="btn-back" style="margin-top:12px;">← Назад</button>
     </div>
 </div>
 
+<!-- LEADERBOARD -->
 <div id="leaderboard" class="overlay" style="display: none;">
     <div class="menu-card">
-        <h2 style="margin:0 0 10px 0; font-size: 20px;">🏆 Зал славы</h2>
+        <h2 style="margin:0 0 14px 0; font-size: 18px; font-family:'Unbounded',sans-serif; font-weight:900;">🏆 Зал славы</h2>
         <div class="tabs-container">
             <button id="btnRec" class="tab-btn active" onclick="loadTab('score')">Рекорды</button>
             <button id="btnSum" class="tab-btn" onclick="loadTab('total_score')">Всего</button>
@@ -331,25 +498,27 @@
         <div class="table-container">
             <table class="leaderboard-table">
                 <thead>
-                    <tr><th style="width:30px">#</th><th>Игрок</th><th id="typeLabel" style="text-align:right">Очки</th></tr>
+                    <tr><th style="width:32px">#</th><th>Игрок</th><th id="typeLabel" style="text-align:right">Очки</th></tr>
                 </thead>
                 <tbody id="leaderBody"></tbody>
             </table>
         </div>
-        <button onclick="closeOverlay('leaderboard')" style="background:#64748b; box-shadow: 0 4px 0px #475569; margin-top: 15px;">Назад</button>
+        <button onclick="closeOverlay('leaderboard')" class="btn-back" style="margin-top:12px;">← Назад</button>
     </div>
 </div>
 
+<!-- GAME OVER -->
 <div id="gameOver" class="overlay" style="display: none;">
     <div class="menu-card">
-        <h1 id="gameOverEmoji" style="font-size: 40px; margin:0">😈</h1>
-        <h2 id="gameOverTitle" style="font-size: 18px; margin-bottom:5px">Тебя поймали!</h2>
-        <p style="margin:5px 0; color:var(--text-muted); font-size: 14px;">Награда🧶: <b id="addedMacrame" style="color:#10b981">+0</b> <span id="boostIndicator" style="color:#f59e0b; font-weight:800"></span></p>
-        <div style="background:#f8fafc; padding:12px; border-radius:14px; margin: 10px 0;">
-            <b id="finalScore" style="font-size: 28px; color: var(--primary)">0</b>
+        <div style="font-size: 52px; margin: 0 0 8px 0; line-height: 1;" id="gameOverEmoji">😈</div>
+        <h2 id="gameOverTitle" style="font-size: 17px; margin: 0 0 6px 0; font-family:'Unbounded',sans-serif;">Тебя поймали!</h2>
+        <p style="margin:4px 0 10px 0; color:var(--text-muted); font-size: 13px;">Награда 🧶: <b id="addedMacrame" style="color:#10b981">+0</b> <span id="boostIndicator" style="color:#f59e0b; font-weight:800"></span></p>
+        <div class="score-display">
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Счёт</div>
+            <b id="finalScore" style="font-size: 36px; color: #c084fc; font-family:'Unbounded',sans-serif;">0</b>
         </div>
-        <button onclick="restart()" class="btn-play">🔥 ПОВТОРИТЬ</button>
-        <button onclick="backToMenu()" style="background:#64748b; box-shadow: 0 4px 0px #475569;">В МЕНЮ</button>
+        <button onclick="restart()" class="btn-play" style="margin-top:12px;">🔥 ЕЩЁ РАЗ</button>
+        <button onclick="backToMenu()" class="btn-back" style="margin-top:6px;">В меню</button>
     </div>
 </div>
 
@@ -361,13 +530,21 @@ const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 const sessionID = Math.random().toString(36).substring(7);
 
-let playerName = "", currentID = null, totalMacrame = 0, ownedSkins = ["natalia"], currentSkin = "natalia", boostersCount = 0, boostUntil = null; 
+let playerName = "", currentID = null, totalMacrame = 0;
+let ownedSkins = ["natalia"], currentSkin = "natalia";
+let ownedPlayerSkins = ["default"], currentPlayerSkin = "default";
+let boostersCount = 0, boostUntil = null; 
 let currentAudio = null;
 
-const SKINS = {
+const ENEMY_SKINS = {
     "natalia": { name: "Наталия", img: "natalia.jpg", price: 0, title: "Побег от Наталии", emoji: "😈" },
-    "dmitro": { name: "Дмитро", img: "дмитро.jpg", price: 1500, title: "Побег от Дмитра", emoji: "🌍", refund: 800 },
-    "budko": { name: "Будко", img: "будко.png", price: 5000, title: "Побег от Оксаны", emoji: "👺", refund: 2500 }
+    "dmitro":  { name: "Дмитро",  img: "дмитро.jpg",  price: 1500, title: "Побег от Дмитра",  emoji: "🌍", refund: 800 },
+    "budko":   { name: "Будко",   img: "будко.png",   price: 5000, title: "Побег от Оксаны",  emoji: "👺", refund: 2500 }
+};
+
+const PLAYER_SKINS = {
+    "default": { name: "Стандарт", img: "игрок.jpg", price: 0 },
+    "skin67":  { name: "Скин 67",  img: "67.png",    price: 6700 }
 };
 
 function isBoostActive() { return boostUntil && new Date(boostUntil) > new Date(); }
@@ -376,7 +553,7 @@ async function buyBooster() {
     if (totalMacrame >= 1250) {
         totalMacrame -= 1250; boostersCount++;
         const { error } = await supabaseClient.from('leaderboard').update({ macrame_points: totalMacrame, boosters_count: boostersCount }).eq('id', currentID);
-        if(!error) { updateMacrameUI(); renderShop('boosts'); }
+        if (!error) { updateMacrameUI(); renderShop('boosts'); }
     } else { alert("Недостаточно макраме!"); }
 }
 
@@ -386,7 +563,7 @@ async function activateBooster() {
     let newEnd = new Date(baseTime.getTime() + (7 * 60 * 1000));
     boostersCount--; boostUntil = newEnd.toISOString();
     const { error } = await supabaseClient.from('leaderboard').update({ boosters_count: boostersCount, boost_until: boostUntil }).eq('id', currentID);
-    if(!error) { updateMacrameUI(); renderShop('boosts'); }
+    if (!error) { updateMacrameUI(); renderShop('boosts'); }
 }
 
 setInterval(() => {
@@ -410,13 +587,18 @@ async function checkAutoLogin() {
 
 async function handleAuth() {
     const name = document.getElementById("loginName").value.trim(), pass = document.getElementById("loginPass").value.trim(), err = document.getElementById("authError");
-    if (name.length < 2 || pass.length < 4) { err.innerText = "Ник (2+) и пароль (4+) малы"; err.style.display = "block"; return; }
+    if (name.length < 2 || pass.length < 4) { err.innerText = "Ник (2+) и пароль (4+) слишком короткие"; err.style.display = "block"; return; }
     const { data: user } = await supabaseClient.from('leaderboard').select('*').eq('name', name).maybeSingle();
     if (user) {
         if (user.password === pass) { loginSuccess(user); } 
         else { err.innerText = "Неверный пароль"; err.style.display = "block"; }
     } else {
-        const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ name, password: pass, score: 0, total_score: 0, macrame_points: 0, owned_skins: ["natalia"], current_skin: "natalia", boosters_count: 0 }]).select().single();
+        const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ 
+            name, password: pass, score: 0, total_score: 0, macrame_points: 0, 
+            owned_skins: ["natalia"], current_skin: "natalia",
+            owned_player_skins: ["default"], current_player_skin: "default",
+            boosters_count: 0 
+        }]).select().single();
         loginSuccess(newUser);
     }
 }
@@ -424,12 +606,13 @@ async function handleAuth() {
 function loginSuccess(user, save = true) {
     playerName = user.name; currentID = user.id; totalMacrame = user.macrame_points || 0; 
     ownedSkins = user.owned_skins || ["natalia"]; currentSkin = user.current_skin || "natalia";
+    ownedPlayerSkins = user.owned_player_skins || ["default"]; currentPlayerSkin = user.current_player_skin || "default";
     boostersCount = user.boosters_count || 0; boostUntil = user.boost_until;
     if (save) localStorage.setItem('game_user', JSON.stringify(user));
     document.getElementById("authSection").style.display = "none";
     document.getElementById("gameSection").style.display = "block";
     document.getElementById("welcomeText").innerText = playerName;
-    updateMacrameUI(); applySkin();
+    updateMacrameUI(); applyEnemySkin(); applyPlayerSkin();
 }
 
 async function saveResults(s) {
@@ -449,70 +632,137 @@ async function saveResults(s) {
 
 function updateMacrameUI() { document.getElementById("macrameStats").style.display = "flex"; document.getElementById("macrameCount").innerText = totalMacrame; }
 
-function openShop() { document.getElementById("shop").style.display = "flex"; document.getElementById("menu").style.display = "none"; renderShop('skins'); }
+function openShop() { document.getElementById("shop").style.display = "flex"; document.getElementById("menu").style.display = "none"; renderShop('enemy'); }
 function openRadio() { document.getElementById("radio").style.display = "flex"; document.getElementById("menu").style.display = "none"; }
 function closeOverlay(id) { document.getElementById(id).style.display = "none"; document.getElementById("menu").style.display = "flex"; }
 
 function toggleSong(file, btnId) {
     if (currentAudio && currentAudio.src.includes(file)) {
-        if (currentAudio.paused) { currentAudio.play(); document.getElementById(btnId).innerText = "СТОП"; } 
-        else { currentAudio.pause(); document.getElementById(btnId).innerText = "ИГРАТЬ"; }
+        if (currentAudio.paused) { currentAudio.play(); document.getElementById(btnId).innerText = "⏹ СТОП"; } 
+        else { currentAudio.pause(); document.getElementById(btnId).innerText = "▶ ИГРАТЬ"; }
     } else {
         if (currentAudio) currentAudio.pause();
         currentAudio = new Audio(file); currentAudio.loop = true; currentAudio.play();
-        document.querySelectorAll('.radio-btn').forEach(b => b.innerText = "ИГРАТЬ");
-        document.getElementById(btnId).innerText = "СТОП";
+        document.querySelectorAll('.radio-btn').forEach(b => b.innerText = "▶ ИГРАТЬ");
+        document.getElementById(btnId).innerText = "⏹ СТОП";
     }
 }
 
 let isSpinning = false;
 async function spinRoulette() {
-    if (isSpinning || totalMacrame < 2000) { if(!isSpinning) alert("Недостаточно макраме (2000 🧶)"); return; }
+    if (isSpinning || totalMacrame < 2000) { if (!isSpinning) alert("Недостаточно макраме (2000 🧶)"); return; }
     isSpinning = true; totalMacrame -= 2000; updateMacrameUI();
     const resContainer = document.getElementById("rouletteResult"), rouletteImgs = ["дмитро.jpg", "будко.png", "natalia.jpg"];
     let i = 0;
-    const anim = setInterval(() => { resContainer.innerHTML = `<img src="${rouletteImgs[i % rouletteImgs.length]}" style="width:60px;height:60px;border-radius:10px;">`; i++; }, 100);
+    const anim = setInterval(() => { resContainer.innerHTML = `<img src="${rouletteImgs[i % rouletteImgs.length]}" style="width:60px;height:60px;border-radius:12px; border:1px solid rgba(255,255,255,0.1)">`; i++; }, 100);
     setTimeout(async () => {
         clearInterval(anim);
-        const winId = Math.random() < 0.75 ? "dmitro" : "budko", skin = SKINS[winId];
-        resContainer.innerHTML = `<img src="${skin.img}" style="width:70px;height:70px;border-radius:15px; border:3px solid #10b981; transform: scale(1.1);">`;
+        const winId = Math.random() < 0.75 ? "dmitro" : "budko", skin = ENEMY_SKINS[winId];
+        resContainer.innerHTML = `<img src="${skin.img}" style="width:70px;height:70px;border-radius:14px; border:2px solid #10b981; box-shadow: 0 0 20px rgba(16,185,129,0.4);">`;
         let msg = "";
         if (ownedSkins.includes(winId)) { totalMacrame += skin.refund; msg = `Дубликат! Получено ${skin.refund} 🧶`; }
         else { ownedSkins.push(winId); msg = `Ура! Выпал ${skin.name}!`; }
         setTimeout(() => alert(msg), 100);
         await supabaseClient.from('leaderboard').update({ macrame_points: totalMacrame, owned_skins: ownedSkins }).eq('id', currentID);
-        isSpinning = false; updateMacrameUI(); renderShop('skins');
+        isSpinning = false; updateMacrameUI(); renderShop('enemy');
     }, 2000);
 }
 
 function renderShop(tab) {
     const container = document.getElementById("shopList"); container.innerHTML = "";
-    document.getElementById("tabSkins").className = tab === 'skins' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById("tabEnemy").className  = tab === 'enemy'  ? 'tab-btn active' : 'tab-btn';
+    document.getElementById("tabPlayer").className = tab === 'player' ? 'tab-btn active' : 'tab-btn';
     document.getElementById("tabBoosts").className = tab === 'boosts' ? 'tab-btn active' : 'tab-btn';
-    if (tab === 'skins') {
-        container.innerHTML = `<div style="background:#fff7ed; padding:12px; border-radius:18px; border:2px dashed #fbbf24; margin-bottom:12px;"><div style="font-weight:900; color:#9a3412; font-size:11px; text-transform:uppercase; margin-bottom:8px;">🎰 СЛУЧАЙНЫЙ СКИН</div><div id="rouletteResult" style="height:70px; display:flex; align-items:center; justify-content:center;">🧶</div><button onclick="spinRoulette()" style="background:#f59e0b; box-shadow:0 4px 0px #b45309; padding:10px;" ${isSpinning ? 'disabled' : ''}>${isSpinning ? "УДАЧА..." : "КРУТИТЬ (2000🧶)"}</button></div>`;
-        Object.keys(SKINS).forEach(id => {
-            const s = SKINS[id], isOwned = ownedSkins.includes(id), isCurrent = currentSkin === id;
-            container.innerHTML += `<div class="shop-item"><img src="${s.img}" class="shop-img"><div class="shop-info"><div class="shop-name">${s.name}</div><div class="shop-price">${isOwned ? "✅ Есть" : "💰 "+s.price}</div></div><button class="btn-buy-small" onclick="${isOwned ? `selectSkin('${id}')` : `buySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>${isCurrent ? "ВЫБРАН" : (isOwned ? "ВЗЯТЬ" : "КУПИТЬ")}</button></div>`;
+
+    if (tab === 'enemy') {
+        // Рулетка
+        container.innerHTML = `
+            <div class="roulette-card">
+                <div class="roulette-label">🎰 Случайный скин врага</div>
+                <div id="rouletteResult" style="height:70px; display:flex; align-items:center; justify-content:center; font-size:28px;">🎲</div>
+                <button onclick="spinRoulette()" style="background:rgba(245,158,11,0.2); border-color:rgba(245,158,11,0.4); color:#fbbf24; padding:10px;" ${isSpinning ? 'disabled' : ''}>${isSpinning ? "Крутится..." : "🎰 КРУТИТЬ (2000 🧶)"}</button>
+            </div>`;
+        Object.keys(ENEMY_SKINS).forEach(id => {
+            const s = ENEMY_SKINS[id], isOwned = ownedSkins.includes(id), isCurrent = currentSkin === id;
+            container.innerHTML += `
+                <div class="shop-item">
+                    <img src="${s.img}" class="shop-img">
+                    <div class="shop-info">
+                        <div class="shop-name">${s.name}</div>
+                        <div class="shop-price ${isOwned ? 'owned' : ''}">${isOwned ? "✅ В коллекции" : "💰 " + s.price + " 🧶"}</div>
+                    </div>
+                    <button class="btn-buy-small" onclick="${isOwned ? `selectEnemySkin('${id}')` : `buyEnemySkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>${isCurrent ? "✓ ВЫБРАН" : (isOwned ? "ВЗЯТЬ" : "КУПИТЬ")}</button>
+                </div>`;
         });
+
+    } else if (tab === 'player') {
+        Object.keys(PLAYER_SKINS).forEach(id => {
+            const s = PLAYER_SKINS[id], isOwned = ownedPlayerSkins.includes(id), isCurrent = currentPlayerSkin === id;
+            container.innerHTML += `
+                <div class="shop-item">
+                    <img src="${s.img}" class="shop-img">
+                    <div class="shop-info">
+                        <div class="shop-name">${s.name}</div>
+                        <div class="shop-price ${isOwned ? 'owned' : ''}">${isOwned ? "✅ В коллекции" : "💰 " + s.price + " 🧶"}</div>
+                    </div>
+                    <button class="btn-buy-small" onclick="${isOwned ? `selectPlayerSkin('${id}')` : `buyPlayerSkin('${id}')`}" ${isCurrent ? 'disabled' : ''}>${isCurrent ? "✓ ВЫБРАН" : (isOwned ? "ВЗЯТЬ" : "КУПИТЬ")}</button>
+                </div>`;
+        });
+
     } else {
-        container.innerHTML = `<div class="shop-item"><div class="shop-info"><div class="shop-name">⚡️ БУСТЕР X2</div><div class="shop-price">1250 🧶 (7 МИНУТ)</div></div><button class="btn-buy-small" onclick="buyBooster()">КУПИТЬ</button></div><div style="background:#f1f5f9; padding:15px; border-radius:18px; margin-top:15px;"><div style="font-weight:800; color:#475569; font-size:13px;">ЗАПАСЫ: ${boostersCount} ШТ.</div><button onclick="activateBooster()" style="background:#10b981; box-shadow:0 4px 0px #047857;" ${boostersCount === 0 ? 'disabled' : ''}>АКТИВИРОВАТЬ</button></div>`;
+        container.innerHTML = `
+            <div class="shop-item">
+                <div class="shop-info">
+                    <div class="shop-name">⚡ Бустер x2 🧶</div>
+                    <div class="shop-price">1250 🧶 · 7 минут</div>
+                </div>
+                <button class="btn-buy-small" onclick="buyBooster()">КУПИТЬ</button>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:18px; border:1px solid var(--card-border); margin-top:4px;">
+                <div style="font-weight:800; color:var(--text-muted); font-size:13px; margin-bottom:10px;">В запасе: <span style="color:#c084fc;">${boostersCount} шт.</span></div>
+                <button onclick="activateBooster()" style="background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.4); color:#6ee7b7;" ${boostersCount === 0 ? 'disabled' : ''}>⚡ АКТИВИРОВАТЬ</button>
+            </div>`;
     }
 }
 
-async function buySkin(id) {
-    if (totalMacrame >= SKINS[id].price) {
-        totalMacrame -= SKINS[id].price; ownedSkins.push(id);
+// Enemy skin actions
+async function buyEnemySkin(id) {
+    if (totalMacrame >= ENEMY_SKINS[id].price) {
+        totalMacrame -= ENEMY_SKINS[id].price; ownedSkins.push(id);
         await supabaseClient.from('leaderboard').update({ macrame_points: totalMacrame, owned_skins: ownedSkins }).eq('id', currentID);
-        updateMacrameUI(); renderShop('skins');
+        updateMacrameUI(); renderShop('enemy');
     } else { alert("Недостаточно макраме!"); }
 }
+async function selectEnemySkin(id) {
+    currentSkin = id;
+    await supabaseClient.from('leaderboard').update({ current_skin: id }).eq('id', currentID);
+    applyEnemySkin(); renderShop('enemy');
+}
 
-async function selectSkin(id) { currentSkin = id; await supabaseClient.from('leaderboard').update({ current_skin: id }).eq('id', currentID); applySkin(); renderShop('skins'); }
+// Player skin actions
+async function buyPlayerSkin(id) {
+    if (totalMacrame >= PLAYER_SKINS[id].price) {
+        totalMacrame -= PLAYER_SKINS[id].price; ownedPlayerSkins.push(id);
+        await supabaseClient.from('leaderboard').update({ macrame_points: totalMacrame, owned_player_skins: ownedPlayerSkins }).eq('id', currentID);
+        updateMacrameUI(); renderShop('player');
+    } else { alert("Недостаточно макраме!"); }
+}
+async function selectPlayerSkin(id) {
+    currentPlayerSkin = id;
+    await supabaseClient.from('leaderboard').update({ current_player_skin: id }).eq('id', currentID);
+    applyPlayerSkin(); renderShop('player');
+}
 
-function applySkin() {
-    const s = SKINS[currentSkin]; enemyImg.src = s.img;
-    document.getElementById("mainTitle").innerText = s.title; document.getElementById("gameOverEmoji").innerText = s.emoji;
+function applyEnemySkin() {
+    const s = ENEMY_SKINS[currentSkin]; 
+    enemyImg.src = s.img;
+    document.getElementById("mainTitle").innerText = s.title; 
+    document.getElementById("gameOverEmoji").innerText = s.emoji;
+}
+
+function applyPlayerSkin() {
+    const s = PLAYER_SKINS[currentPlayerSkin];
+    playerImg.src = s.img;
 }
 
 function logout() { localStorage.removeItem('game_user'); location.reload(); }
@@ -525,6 +775,7 @@ async function initOnline() {
     }).subscribe(async (s) => { if (s === 'SUBSCRIBED') await ch.track({ user: playerName || 'Гость' }); });
 }
 
+// GAME ENGINE
 const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
 let score = 0, running = false, slowTimer = 0, points = [], hasShield = false, enemyFreezeTimer = 0;
 let player = { x: 0, y: 0, r: 25 }, enemy = { x: -200, y: -200, r: 25 };
@@ -553,13 +804,12 @@ function update() {
             if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); }
             if (p.type === "shield") { hasShield = true; }
             score += {common:1, rare:1, yellow:1, epic:3, green:5, shield:5}[p.type];
-            document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>(x2)</span>" : "");
+            document.getElementById("score").innerHTML = "Очки: " + score + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
             points.splice(i, 1); spawnPoint(); 
         }
     });
     if (hasShield) { ctx.beginPath(); ctx.arc(player.x, player.y, player.r + 10, 0, Math.PI * 2); ctx.fillStyle = "rgba(59, 130, 246, 0.3)"; ctx.fill(); ctx.strokeStyle = "rgba(59, 130, 246, 0.8)"; ctx.lineWidth = 3; ctx.stroke(); }
     
-    // Отрисовка игрока кругом
     ctx.save();
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
@@ -567,7 +817,6 @@ function update() {
     ctx.drawImage(playerImg, player.x - player.r, player.y - player.r, player.r * 2, player.r * 2);
     ctx.restore();
 
-    // Отрисовка врага кругом
     ctx.save();
     ctx.beginPath();
     ctx.arc(enemy.x, enemy.y, enemy.r, 0, Math.PI * 2);
@@ -592,13 +841,16 @@ async function loadTab(mode) {
     document.getElementById("btnSum").className = mode === 'total_score' ? 'tab-btn active' : 'tab-btn';
     document.getElementById("typeLabel").innerText = mode === 'score' ? "Рекорд" : "Сумма";
     const { data } = await supabaseClient.from("leaderboard").select("name, score, total_score").order(mode, { ascending: false }).limit(50);
-    document.getElementById("leaderBody").innerHTML = data?.map((p, i) => `<tr><td>${i+1}</td><td style="font-weight:600">${p.name}</td><td style="text-align:right; font-weight:800; color:var(--primary)">${p[mode]}</td></tr>`).join("");
+    document.getElementById("leaderBody").innerHTML = data?.map((p, i) => {
+        const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1;
+        return `<tr><td style="font-size:14px">${medal}</td><td style="font-weight:600; color:var(--text)">${p.name}</td><td style="text-align:right; font-weight:800; color:#c084fc; font-family:'Unbounded',sans-serif; font-size:12px">${p[mode]}</td></tr>`;
+    }).join("");
 }
 
 function startGame() {
     document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; hasShield = false; enemyFreezeTimer = 0;
-    document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>(x2)</span>" : "");
-    for(let i=0; i<9; i++) spawnPoint(); running = true; update();
+    document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
+    for (let i = 0; i < 9; i++) spawnPoint(); running = true; update();
 }
 
 function gameOver() { running = false; saveResults(score); document.getElementById("finalScore").innerText = score; document.getElementById("gameOver").style.display = "flex"; }
@@ -609,9 +861,7 @@ window.addEventListener("resize", () => { canvas.width = window.innerWidth; canv
 checkAutoLogin(); initOnline(); window.dispatchEvent(new Event('resize'));
 window.addEventListener("mousemove", (e) => { player.x = e.clientX; player.y = e.clientY; });
 window.addEventListener("touchmove", (e) => { 
-    if (running) {
-        player.x = e.touches[0].clientX; player.y = e.touches[0].clientY; e.preventDefault(); 
-    }
+    if (running) { player.x = e.touches[0].clientX; player.y = e.touches[0].clientY; e.preventDefault(); }
 }, {passive:false});
 </script>
 </body>
