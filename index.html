@@ -636,6 +636,244 @@
         }
         .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.04); }
 
+        /* ── ADMIN PANEL ── */
+        #adminPanel {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(16px);
+            display: none; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            padding: 12px 8px 24px;
+            overflow-y: auto;
+            animation: ovFadeIn 0.35s var(--ease-out-expo);
+        }
+        #adminPanel.open { display: flex; }
+        .admin-card {
+            width: 100%; max-width: 520px;
+            background: linear-gradient(160deg, rgba(15,8,35,0.98), rgba(8,4,20,0.99));
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 24px;
+            padding: 20px 18px 18px;
+            box-shadow:
+                0 0 0 1px rgba(139,92,246,0.15),
+                0 32px 64px rgba(0,0,0,0.8),
+                0 0 80px rgba(139,92,246,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.07);
+            flex-shrink: 0;
+        }
+        .admin-title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 18px; font-weight: 900;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ff0080, #a855f7, #00d4ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .admin-subtitle {
+            font-size: 11px; color: rgba(255,80,180,0.6); font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
+        }
+        .admin-tabs {
+            display: flex; gap: 4px; background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: 12px;
+            padding: 3px; margin-bottom: 14px; flex-wrap: wrap;
+        }
+        .admin-tab {
+            flex: 1; min-width: 70px; padding: 7px 6px;
+            font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+            text-transform: uppercase; background: transparent;
+            color: var(--text-dim); border-radius: 9px;
+            border: none !important; box-shadow: none !important;
+            margin: 0 !important; transform: none !important;
+            transition: all 0.2s; cursor: pointer;
+        }
+        .admin-tab:hover { background: rgba(255,255,255,0.04) !important; color: var(--text-muted) !important; }
+        .admin-tab.active {
+            background: rgba(168,85,247,0.2) !important;
+            color: #e879f9 !important;
+            border: 1px solid rgba(168,85,247,0.3) !important;
+        }
+        .admin-section { display: none; }
+        .admin-section.visible { display: block; }
+
+        .admin-search-box {
+            display: flex; gap: 8px; margin-bottom: 12px; align-items: center;
+        }
+        .admin-search-box input {
+            flex: 1; margin: 0; padding: 10px 14px; font-size: 13px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+        }
+        .admin-search-box button {
+            width: auto; margin: 0; padding: 10px 14px; font-size: 12px; font-weight: 800;
+            background: rgba(168,85,247,0.3); border-color: rgba(168,85,247,0.4);
+            border-radius: 12px;
+        }
+
+        .admin-player-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(168,85,247,0.12);
+            border-radius: 16px; padding: 14px; margin-bottom: 10px;
+        }
+        .admin-player-name {
+            font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 900;
+            color: #e879f9; margin-bottom: 10px;
+        }
+        .admin-stat-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 6px; margin-bottom: 12px;
+        }
+        .admin-stat {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px; padding: 8px 10px;
+        }
+        .admin-stat-l { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .admin-stat-v { font-size: 14px; font-weight: 900; color: var(--text); font-family: 'Unbounded', sans-serif; }
+
+        .admin-actions { display: flex; flex-direction: column; gap: 8px; }
+        .admin-action-row {
+            display: flex; gap: 8px; align-items: center;
+        }
+        .admin-action-row input {
+            flex: 1; margin: 0; padding: 9px 12px; font-size: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+        }
+        .admin-action-row button {
+            width: auto; margin: 0; padding: 9px 14px; font-size: 11px; font-weight: 800;
+            border-radius: 10px; white-space: nowrap;
+        }
+        .admin-action-label {
+            font-size: 10px; font-weight: 700; color: var(--text-muted);
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;
+        }
+        .btn-admin-give {
+            background: rgba(16,185,129,0.25) !important;
+            border-color: rgba(16,185,129,0.4) !important;
+            color: #6ee7b7 !important;
+        }
+        .btn-admin-set {
+            background: rgba(245,158,11,0.2) !important;
+            border-color: rgba(245,158,11,0.35) !important;
+            color: #fbbf24 !important;
+        }
+        .btn-admin-danger {
+            background: rgba(239,68,68,0.18) !important;
+            border-color: rgba(239,68,68,0.35) !important;
+            color: #f87171 !important;
+        }
+        .btn-admin-purple {
+            background: rgba(168,85,247,0.2) !important;
+            border-color: rgba(168,85,247,0.35) !important;
+            color: #e879f9 !important;
+        }
+
+        /* online activity section */
+        .online-period-tabs {
+            display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .period-btn {
+            padding: 6px 10px; font-size: 10px; font-weight: 800;
+            border-radius: 8px; cursor: pointer;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            color: var(--text-muted); margin: 0; width: auto;
+            transition: all 0.2s;
+        }
+        .period-btn.active {
+            background: rgba(0,212,255,0.15) !important;
+            border-color: rgba(0,212,255,0.3) !important;
+            color: #67e8f9 !important;
+        }
+        .online-list {
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 14px; overflow: hidden;
+            max-height: 320px; overflow-y: auto;
+        }
+        .online-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.15s; cursor: pointer;
+        }
+        .online-row:last-child { border-bottom: none; }
+        .online-row:hover { background: rgba(255,255,255,0.03); }
+        .online-row-name { font-weight: 700; font-size: 13px; color: var(--text); }
+        .online-row-time { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .online-row-badge {
+            font-size: 10px; font-weight: 800; color: #67e8f9;
+            background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 6px; padding: 2px 7px;
+        }
+
+        /* all players list */
+        .all-players-list {
+            max-height: 380px; overflow-y: auto;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 14px; overflow: hidden; overflow-y: auto;
+        }
+        .all-player-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            cursor: pointer; transition: background 0.15s;
+        }
+        .all-player-row:hover { background: rgba(168,85,247,0.06); }
+        .all-player-row:last-child { border-bottom: none; }
+        .all-player-num { font-size: 11px; color: var(--text-dim); font-weight: 700; min-width: 22px; }
+        .all-player-name { font-weight: 700; font-size: 13px; color: var(--text); flex: 1; }
+        .all-player-score { font-size: 11px; color: #c084fc; font-weight: 800; font-family: 'Unbounded', sans-serif; }
+
+        .admin-notice {
+            font-size: 11px; color: var(--text-dim); text-align: center;
+            padding: 10px; font-style: italic;
+        }
+        .admin-close-btn {
+            position: absolute; top: 14px; right: 14px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08) !important;
+            color: var(--text-muted); font-size: 13px; font-weight: 900;
+            width: 32px; height: 32px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            margin: 0; padding: 0; width: 32px;
+        }
+        .admin-card { position: relative; }
+        .admin-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: linear-gradient(135deg, rgba(255,0,128,0.15), rgba(168,85,247,0.1));
+            border: 1px solid rgba(255,0,128,0.3);
+            border-radius: 50px; padding: 4px 10px;
+            font-size: 10px; font-weight: 800; color: #ff80c0;
+            letter-spacing: 1px; text-transform: uppercase;
+            animation: adminPulse 2s ease-in-out infinite;
+        }
+        @keyframes adminPulse {
+            0%,100% { box-shadow: 0 0 8px rgba(255,0,128,0.2); }
+            50% { box-shadow: 0 0 20px rgba(255,0,128,0.5); border-color: rgba(255,0,128,0.6); }
+        }
+        .skin-select-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px; margin-top: 6px;
+        }
+        .skin-select-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px; padding: 8px; text-align: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .skin-select-item:hover { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.3); }
+        .skin-select-item.selected { background: rgba(168,85,247,0.2) !important; border-color: rgba(168,85,247,0.5) !important; }
+        .skin-select-item img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; margin-bottom: 4px; }
+        .skin-select-item span { font-size: 9px; color: var(--text-muted); font-weight: 700; display: block; }
+        .admin-msg {
+            font-size: 12px; font-weight: 700; padding: 8px 12px;
+            border-radius: 10px; margin-top: 8px; text-align: center; display: none;
+        }
+        .admin-msg.success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+        .admin-msg.error { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+
         /* ── PROFILE MODAL ── */
         #profileModal {
             position: fixed; inset: 0; z-index: 50;
@@ -926,6 +1164,124 @@
         </div>
         <button onclick="restart()" class="btn-play" style="margin-top:12px;">🔥 ЕЩЁ РАЗ</button>
         <button onclick="backToMenu()" class="btn-back" style="margin-top:6px;">В меню</button>
+    </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel">
+    <div class="admin-card">
+        <button class="admin-close-btn" onclick="closeAdmin()">✕</button>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
+            <div class="admin-title">⚡ Админ-Панель</div>
+            <div class="admin-badge">🔐 arbuzkiber</div>
+        </div>
+        <div class="admin-subtitle">Полный доступ к базе данных</div>
+
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="adminTab('search')">🔍 Поиск</button>
+            <button class="admin-tab" onclick="adminTab('online')">🟢 Онлайн</button>
+            <button class="admin-tab" onclick="adminTab('all')">👥 Все</button>
+            <button class="admin-tab" onclick="adminTab('give')">🎁 Выдать</button>
+            <button class="admin-tab" onclick="adminTab('stats')">📊 База</button>
+        </div>
+        <div id="adminMsg" class="admin-msg"></div>
+
+        <!-- TAB: SEARCH / PROFILE -->
+        <div class="admin-section visible" id="adminSec-search">
+            <div class="admin-search-box">
+                <input type="text" id="adminSearchInput" placeholder="Ник игрока..." onkeydown="if(event.key==='Enter')adminSearchPlayer()">
+                <button onclick="adminSearchPlayer()" class="btn-admin-purple">НАЙТИ</button>
+            </div>
+            <div id="adminPlayerResult"></div>
+        </div>
+
+        <!-- TAB: ONLINE ACTIVITY -->
+        <div class="admin-section" id="adminSec-online">
+            <div class="online-period-tabs">
+                <button class="period-btn active" onclick="adminLoadOnline('now', this)">Сейчас</button>
+                <button class="period-btn" onclick="adminLoadOnline(30, this)">30 мин</button>
+                <button class="period-btn" onclick="adminLoadOnline(60, this)">1 час</button>
+                <button class="period-btn" onclick="adminLoadOnline(300, this)">5 часов</button>
+                <button class="period-btn" onclick="adminLoadOnline(720, this)">12 часов</button>
+                <button class="period-btn" onclick="adminLoadOnline(1440, this)">24 часа</button>
+            </div>
+            <div id="adminOnlineList" class="online-list">
+                <div class="admin-notice">Загрузка...</div>
+            </div>
+        </div>
+
+        <!-- TAB: ALL PLAYERS -->
+        <div class="admin-section" id="adminSec-all">
+            <div style="display:flex; gap:8px; margin-bottom:10px; align-items:center;">
+                <input type="text" id="adminAllSearch" placeholder="Фильтр по нику..." 
+                    oninput="adminFilterAll()" 
+                    style="flex:1; margin:0; padding:9px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:10px;">
+                <button onclick="adminLoadAllPlayers()" style="width:auto; margin:0; padding:9px 12px; font-size:11px; font-weight:800; border-radius:10px;" class="btn-admin-purple">↻</button>
+            </div>
+            <div id="adminAllList" class="all-players-list">
+                <div class="admin-notice">Нажмите ↻ для загрузки</div>
+            </div>
+        </div>
+
+        <!-- TAB: GIVE -->
+        <div class="admin-section" id="adminSec-give">
+            <div class="admin-search-box">
+                <input type="text" id="adminGiveTarget" placeholder="Ник получателя..." onkeydown="if(event.key==='Enter')adminLoadGiveTarget()">
+                <button onclick="adminLoadGiveTarget()" class="btn-admin-purple">ВЫБРАТЬ</button>
+            </div>
+            <div id="adminGiveTargetInfo" style="font-size:12px; color:#a78bfa; margin-bottom:10px; font-weight:700;"></div>
+
+            <!-- Macrame -->
+            <div class="admin-action-label">🧶 Макраме поинты</div>
+            <div class="admin-action-row" style="margin-bottom:10px;">
+                <input type="number" id="adminGiveMacrame" placeholder="Кол-во (может быть отрицательным)">
+                <button class="btn-admin-give" onclick="adminGiveMacrame()">ДАТЬ</button>
+            </div>
+
+            <!-- Boosters -->
+            <div class="admin-action-label">⚡ Бустеры</div>
+            <div class="admin-action-row" style="margin-bottom:10px;">
+                <input type="number" id="adminGiveBoosters" placeholder="Кол-во бустеров" min="0">
+                <button class="btn-admin-give" onclick="adminGiveBoosters()">ДАТЬ</button>
+            </div>
+
+            <!-- Score -->
+            <div class="admin-action-label">🏆 Установить рекорд</div>
+            <div class="admin-action-row" style="margin-bottom:10px;">
+                <input type="number" id="adminSetScore" placeholder="Новый рекорд" min="0">
+                <button class="btn-admin-set" onclick="adminSetScore()">УСТАНОВИТЬ</button>
+            </div>
+
+            <!-- Enemy skins -->
+            <div class="admin-action-label">🎨 Скины врага (выдать)</div>
+            <div class="skin-select-grid" id="adminEnemySkins" style="margin-bottom:12px;"></div>
+
+            <!-- Player skins -->
+            <div class="admin-action-label">🎮 Скины игрока (выдать)</div>
+            <div class="skin-select-grid" id="adminPlayerSkins" style="margin-bottom:12px;"></div>
+
+            <!-- Boost timer -->
+            <div class="admin-action-label">🚀 Активировать буст (минут)</div>
+            <div class="admin-action-row" style="margin-bottom:10px;">
+                <input type="number" id="adminBoostMinutes" placeholder="Минут буста" min="1" value="60">
+                <button class="btn-admin-set" onclick="adminGiveBoost()">ДАТЬ</button>
+            </div>
+
+            <!-- Reset -->
+            <div class="admin-action-label" style="color:#f87171;">⚠️ Опасная зона</div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-admin-danger" onclick="adminResetPlayer()" style="font-size:11px;">Сбросить всё</button>
+                <button class="btn-admin-danger" onclick="adminDeletePlayer()" style="font-size:11px;">Удалить игрока</button>
+            </div>
+        </div>
+
+        <!-- TAB: DB STATS -->
+        <div class="admin-section" id="adminSec-stats">
+            <button onclick="adminLoadStats()" class="btn-admin-purple" style="margin-bottom:12px; font-size:12px;">📊 Загрузить статистику</button>
+            <div id="adminDbStats">
+                <div class="admin-notice">Нажмите кнопку выше</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1742,6 +2098,406 @@ function restart() { document.getElementById("gameOver").style.display = "none";
 
 window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.r = Math.min(canvas.width, canvas.height) * 0.06; enemy.r = player.r; });
 document.getElementById("profileModal").addEventListener("click", (e) => { if (e.target === document.getElementById("profileModal")) closeProfile(); });
+// ── ADMIN PANEL ─────────────────────────────────────────────────────────────
+const ADMIN_NICK = "arbuzkiber";
+let adminCurrentTarget = null; // { id, name, data }
+let adminAllPlayersCache = [];
+let adminSelectedEnemySkins = [];
+let adminSelectedPlayerSkins = [];
+
+function isAdmin() { return playerName && playerName.toLowerCase() === ADMIN_NICK.toLowerCase(); }
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "p" || e.key === "P" || e.key === "з" || e.key === "З") {
+        if (!isAdmin()) return;
+        const panel = document.getElementById("adminPanel");
+        if (panel.classList.contains("open")) {
+            closeAdmin();
+        } else {
+            openAdmin();
+        }
+    }
+    if (e.key === "Escape") closeAdmin();
+});
+
+function openAdmin() {
+    if (!isAdmin()) return;
+    document.getElementById("adminPanel").classList.add("open");
+    adminLoadOnline('now', document.querySelector('.period-btn'));
+    adminInitSkinSelectors();
+}
+
+function closeAdmin() {
+    document.getElementById("adminPanel").classList.remove("open");
+}
+
+function adminTab(name) {
+    document.querySelectorAll('.admin-tab').forEach((b,i) => {
+        const tabs = ['search','online','all','give','stats'];
+        b.classList.toggle('active', tabs[i] === name);
+    });
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('visible'));
+    const sec = document.getElementById(`adminSec-${name}`);
+    if (sec) sec.classList.add('visible');
+    if (name === 'all' && adminAllPlayersCache.length === 0) adminLoadAllPlayers();
+    if (name === 'stats') adminLoadStats();
+}
+
+function adminShowMsg(text, type = 'success') {
+    const el = document.getElementById("adminMsg");
+    el.textContent = text; el.className = `admin-msg ${type}`; el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+async function adminSearchPlayer() {
+    const name = document.getElementById("adminSearchInput").value.trim();
+    if (!name) return;
+    const res = document.getElementById("adminPlayerResult");
+    res.innerHTML = `<div class="admin-notice">Поиск...</div>`;
+    const { data: u } = await supabaseClient.from("leaderboard").select("*").ilike("name", name).maybeSingle();
+    if (!u) { res.innerHTML = `<div class="admin-notice">Игрок не найден</div>`; return; }
+    adminRenderPlayerProfile(u, res);
+}
+
+function adminRenderPlayerProfile(u, container) {
+    const enemySkin = ENEMY_SKINS[u.current_skin] || ENEMY_SKINS["natalia"];
+    const playerSkin = PLAYER_SKINS[u.current_player_skin] || PLAYER_SKINS["default"];
+    const ownedE = (u.owned_skins || ["natalia"]);
+    const ownedP = (u.owned_player_skins || ["default"]);
+    const boostLeft = u.boost_until && new Date(u.boost_until) > new Date()
+        ? Math.ceil((new Date(u.boost_until) - new Date()) / 60000) + " мин." : "нет";
+
+    container.innerHTML = `
+        <div class="admin-player-card">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <img src="${playerSkin.img}" style="width:44px;height:44px;border-radius:11px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);" onerror="this.src='игрок.jpg'">
+                <div>
+                    <div class="admin-player-name">${u.name}</div>
+                    <div style="font-size:10px; color:var(--text-dim); font-weight:600;">ID: ${u.id} · Пароль: <span style="color:#f97316; font-family:'JetBrains Mono',monospace;">${u.password || '—'}</span></div>
+                </div>
+                <img src="${enemySkin.img}" style="width:36px;height:36px;border-radius:9px;object-fit:cover;border:1px solid rgba(255,255,255,0.06); margin-left:auto;" onerror="this.src='natalia.jpg'">
+            </div>
+            <div class="admin-stat-grid">
+                <div class="admin-stat"><div class="admin-stat-l">🏆 Рекорд</div><div class="admin-stat-v" style="color:#c084fc;">${u.score || 0}</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">∑ Сумма</div><div class="admin-stat-v" style="color:#ec4899;">${u.total_score || 0}</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">🧶 Макраме</div><div class="admin-stat-v" style="color:#fbbf24;">${u.macrame_points || 0}</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">⚡ Бустеры</div><div class="admin-stat-v" style="color:#6ee7b7;">${u.boosters_count || 0} шт.</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">🚀 Буст до</div><div class="admin-stat-v" style="color:#f97316; font-size:11px;">${boostLeft}</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">🎮 Последний вход</div><div class="admin-stat-v" style="color:var(--text-muted); font-size:10px;">${u.last_game_at ? formatAgo(u.last_game_at) : '—'}</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:10px; padding:10px; margin-bottom:10px;">
+                <div class="admin-stat-l" style="margin-bottom:6px;">🎨 Скины врага (${ownedE.length}/${Object.keys(ENEMY_SKINS).length})</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    ${Object.keys(ENEMY_SKINS).map(id => `
+                        <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;
+                            background:${ownedE.includes(id) ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.03)'};
+                            border:1px solid ${ownedE.includes(id) ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.05)'};
+                            color:${ownedE.includes(id) ? '#6ee7b7' : 'var(--text-dim)'};
+                            ${u.current_skin === id ? 'outline:1.5px solid #c084fc;' : ''}">
+                            ${ENEMY_SKINS[id].name}${u.current_skin === id ? ' ✓' : ''}
+                        </span>`).join('')}
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:10px; padding:10px;">
+                <div class="admin-stat-l" style="margin-bottom:6px;">🕹️ Скины игрока (${ownedP.length}/${Object.keys(PLAYER_SKINS).length})</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    ${Object.keys(PLAYER_SKINS).map(id => `
+                        <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;
+                            background:${ownedP.includes(id) ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.03)'};
+                            border:1px solid ${ownedP.includes(id) ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.05)'};
+                            color:${ownedP.includes(id) ? '#6ee7b7' : 'var(--text-dim)'};
+                            ${u.current_player_skin === id ? 'outline:1.5px solid #c084fc;' : ''}">
+                            ${PLAYER_SKINS[id].name}${u.current_player_skin === id ? ' ✓' : ''}
+                        </span>`).join('')}
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <button class="btn-admin-purple" style="font-size:11px; padding:8px 12px; flex:1;"
+                    onclick="adminQuickGiveTarget('${u.name}')">⚡ Быстро выдать</button>
+            </div>
+        </div>
+    `;
+}
+
+function adminQuickGiveTarget(name) {
+    document.getElementById("adminGiveTarget").value = name;
+    adminLoadGiveTarget();
+    adminTab('give');
+}
+
+async function adminLoadOnline(period, btn) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const list = document.getElementById("adminOnlineList");
+    list.innerHTML = `<div class="admin-notice">Загрузка...</div>`;
+
+    if (period === 'now') {
+        // Show players currently in presence channel (real-time)
+        list.innerHTML = `
+            <div class="online-row" style="cursor:default;">
+                <div>
+                    <div class="online-row-name">🟢 Сейчас онлайн</div>
+                    <div class="online-row-time">Отслеживается через Presence</div>
+                </div>
+                <div class="online-row-badge" id="adminNowCount">...</div>
+            </div>
+            <div id="adminNowPlayers" style="padding:0 14px 10px; font-size:12px; color:var(--text-muted); line-height:1.8;"></div>`;
+        // Use supabase presence state
+        setTimeout(() => {
+            try {
+                const ch = supabaseClient.channel('presence-game');
+                const state = ch.presenceState();
+                const names = Object.values(state).flat().map(s => s.user || 'Гость');
+                document.getElementById("adminNowCount").textContent = names.length;
+                document.getElementById("adminNowPlayers").innerHTML = names.length
+                    ? names.map(n => `<span style="cursor:pointer; color:#c084fc; font-weight:700;" onclick="adminQuickSearch('${n}')">${n}</span>`).join(' · ')
+                    : 'Никого нет онлайн';
+            } catch(e) {
+                document.getElementById("adminNowCount").textContent = '—';
+            }
+        }, 300);
+        return;
+    }
+
+    // Historical: query last_game_at within period
+    const since = new Date(Date.now() - period * 60 * 1000).toISOString();
+    const { data } = await supabaseClient.from("leaderboard")
+        .select("name, last_game_at, last_game_score")
+        .gte("last_game_at", since)
+        .order("last_game_at", { ascending: false });
+
+    if (!data || data.length === 0) {
+        list.innerHTML = `<div class="admin-notice">Никто не играл за этот период</div>`;
+        return;
+    }
+
+    // Count per player
+    const counts = {};
+    data.forEach(r => { counts[r.name] = (counts[r.name] || 0) + 1; });
+
+    list.innerHTML = data.map((r, i) => `
+        <div class="online-row" onclick="adminQuickSearch('${r.name}')">
+            <div>
+                <div class="online-row-name">${r.name}</div>
+                <div class="online-row-time">${formatAgo(r.last_game_at)} · рекорд сессии: ${r.last_game_score ?? 0}</div>
+            </div>
+            <div class="online-row-badge">${counts[r.name]}x</div>
+        </div>
+    `).join('');
+}
+
+function adminQuickSearch(name) {
+    document.getElementById("adminSearchInput").value = name;
+    adminTab('search');
+    adminSearchPlayer();
+}
+
+async function adminLoadAllPlayers() {
+    const list = document.getElementById("adminAllList");
+    list.innerHTML = `<div class="admin-notice">Загрузка...</div>`;
+    const { data } = await supabaseClient.from("leaderboard")
+        .select("id, name, score, total_score, macrame_points")
+        .order("score", { ascending: false });
+    adminAllPlayersCache = data || [];
+    adminRenderAllList(adminAllPlayersCache);
+}
+
+function adminFilterAll() {
+    const q = document.getElementById("adminAllSearch").value.toLowerCase();
+    const filtered = q ? adminAllPlayersCache.filter(p => p.name.toLowerCase().includes(q)) : adminAllPlayersCache;
+    adminRenderAllList(filtered);
+}
+
+function adminRenderAllList(players) {
+    const list = document.getElementById("adminAllList");
+    if (!players.length) { list.innerHTML = `<div class="admin-notice">Ничего не найдено</div>`; return; }
+    list.innerHTML = players.map((p, i) => `
+        <div class="all-player-row" onclick="adminQuickSearch('${p.name}')">
+            <div class="all-player-num">${i + 1}</div>
+            <div class="all-player-name">${p.name}</div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <div class="all-player-score">${p.score || 0}</div>
+                <div style="font-size:10px; color:#fbbf24; font-weight:700;">${p.macrame_points || 0} 🧶</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function adminLoadGiveTarget() {
+    const name = document.getElementById("adminGiveTarget").value.trim();
+    if (!name) return;
+    const { data: u } = await supabaseClient.from("leaderboard").select("*").ilike("name", name).maybeSingle();
+    if (!u) { adminShowMsg("Игрок не найден", "error"); adminCurrentTarget = null; document.getElementById("adminGiveTargetInfo").textContent = ""; return; }
+    adminCurrentTarget = u;
+    document.getElementById("adminGiveTargetInfo").innerHTML = 
+        `✅ Выбран: <span style="color:#e879f9;">${u.name}</span> · макраме: <span style="color:#fbbf24;">${u.macrame_points || 0}</span> · бустеры: <span style="color:#6ee7b7;">${u.boosters_count || 0}</span>`;
+    adminInitSkinSelectors();
+}
+
+function adminInitSkinSelectors() {
+    // Enemy skins
+    const eGrid = document.getElementById("adminEnemySkins");
+    if (eGrid) eGrid.innerHTML = Object.keys(ENEMY_SKINS).map(id => `
+        <div class="skin-select-item ${adminSelectedEnemySkins.includes(id) ? 'selected' : ''}" onclick="adminToggleEnemySkin('${id}', this)">
+            <img src="${ENEMY_SKINS[id].img}" onerror="this.src='natalia.jpg'">
+            <span>${ENEMY_SKINS[id].name}</span>
+        </div>
+    `).join('') + `<div style="grid-column:1/-1;"><button class="btn-admin-give" onclick="adminGiveSkins('enemy')" style="font-size:11px; padding:8px;">Выдать выбранные</button></div>`;
+
+    // Player skins
+    const pGrid = document.getElementById("adminPlayerSkins");
+    if (pGrid) pGrid.innerHTML = Object.keys(PLAYER_SKINS).map(id => `
+        <div class="skin-select-item ${adminSelectedPlayerSkins.includes(id) ? 'selected' : ''}" onclick="adminTogglePlayerSkin('${id}', this)">
+            <img src="${PLAYER_SKINS[id].img}" onerror="this.src='игрок.jpg'">
+            <span>${PLAYER_SKINS[id].name}</span>
+        </div>
+    `).join('') + `<div style="grid-column:1/-1;"><button class="btn-admin-give" onclick="adminGiveSkins('player')" style="font-size:11px; padding:8px;">Выдать выбранные</button></div>`;
+}
+
+function adminToggleEnemySkin(id, el) {
+    const idx = adminSelectedEnemySkins.indexOf(id);
+    if (idx >= 0) { adminSelectedEnemySkins.splice(idx, 1); el.classList.remove('selected'); }
+    else { adminSelectedEnemySkins.push(id); el.classList.add('selected'); }
+}
+function adminTogglePlayerSkin(id, el) {
+    const idx = adminSelectedPlayerSkins.indexOf(id);
+    if (idx >= 0) { adminSelectedPlayerSkins.splice(idx, 1); el.classList.remove('selected'); }
+    else { adminSelectedPlayerSkins.push(id); el.classList.add('selected'); }
+}
+
+async function adminGiveMacrame() {
+    if (!adminCurrentTarget) { adminShowMsg("Сначала выберите игрока", "error"); return; }
+    const amount = parseInt(document.getElementById("adminGiveMacrame").value);
+    if (isNaN(amount)) { adminShowMsg("Введите число", "error"); return; }
+    const newVal = Math.max(0, (adminCurrentTarget.macrame_points || 0) + amount);
+    const { error } = await supabaseClient.from("leaderboard").update({ macrame_points: newVal }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminCurrentTarget.macrame_points = newVal;
+    document.getElementById("adminGiveTargetInfo").innerHTML = 
+        `✅ Выдано! <span style="color:#e879f9;">${adminCurrentTarget.name}</span> · макраме: <span style="color:#fbbf24;">${newVal}</span>`;
+    adminShowMsg(`${amount >= 0 ? '+' : ''}${amount} 🧶 → ${adminCurrentTarget.name} (итого: ${newVal})`);
+    // Update own UI if it's us
+    if (adminCurrentTarget.name === playerName) { totalMacrame = newVal; updateMacrameUI(); }
+}
+
+async function adminGiveBoosters() {
+    if (!adminCurrentTarget) { adminShowMsg("Сначала выберите игрока", "error"); return; }
+    const amount = parseInt(document.getElementById("adminGiveBoosters").value);
+    if (isNaN(amount) || amount < 0) { adminShowMsg("Введите положительное число", "error"); return; }
+    const newVal = (adminCurrentTarget.boosters_count || 0) + amount;
+    const { error } = await supabaseClient.from("leaderboard").update({ boosters_count: newVal }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminCurrentTarget.boosters_count = newVal;
+    adminShowMsg(`+${amount} ⚡ бустеров → ${adminCurrentTarget.name} (итого: ${newVal})`);
+    if (adminCurrentTarget.name === playerName) { boostersCount = newVal; }
+}
+
+async function adminSetScore() {
+    if (!adminCurrentTarget) { adminShowMsg("Сначала выберите игрока", "error"); return; }
+    const val = parseInt(document.getElementById("adminSetScore").value);
+    if (isNaN(val) || val < 0) { adminShowMsg("Введите корректное число", "error"); return; }
+    const { error } = await supabaseClient.from("leaderboard").update({ score: val }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminCurrentTarget.score = val;
+    adminShowMsg(`Рекорд ${adminCurrentTarget.name} = ${val} 🏆`);
+}
+
+async function adminGiveSkins(type) {
+    if (!adminCurrentTarget) { adminShowMsg("Сначала выберите игрока", "error"); return; }
+    const isEnemy = type === 'enemy';
+    const skinIds = isEnemy ? adminSelectedEnemySkins : adminSelectedPlayerSkins;
+    if (!skinIds.length) { adminShowMsg("Выберите хотя бы один скин", "error"); return; }
+    const field = isEnemy ? "owned_skins" : "owned_player_skins";
+    const currentOwned = adminCurrentTarget[field] || (isEnemy ? ["natalia"] : ["default"]);
+    const newOwned = [...new Set([...currentOwned, ...skinIds])];
+    const { error } = await supabaseClient.from("leaderboard").update({ [field]: newOwned }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminCurrentTarget[field] = newOwned;
+    adminShowMsg(`Скины выданы: ${skinIds.join(', ')} → ${adminCurrentTarget.name}`);
+    if (adminCurrentTarget.name === playerName) {
+        if (isEnemy) ownedSkins = newOwned;
+        else ownedPlayerSkins = newOwned;
+    }
+    // reset selection
+    if (isEnemy) adminSelectedEnemySkins = [];
+    else adminSelectedPlayerSkins = [];
+    adminInitSkinSelectors();
+}
+
+async function adminGiveBoost() {
+    if (!adminCurrentTarget) { adminShowMsg("Сначала выберите игрока", "error"); return; }
+    const mins = parseInt(document.getElementById("adminBoostMinutes").value);
+    if (isNaN(mins) || mins < 1) { adminShowMsg("Введите минуты", "error"); return; }
+    const base = adminCurrentTarget.boost_until && new Date(adminCurrentTarget.boost_until) > new Date()
+        ? new Date(adminCurrentTarget.boost_until) : new Date();
+    const newEnd = new Date(base.getTime() + mins * 60000).toISOString();
+    const { error } = await supabaseClient.from("leaderboard").update({ boost_until: newEnd }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminCurrentTarget.boost_until = newEnd;
+    adminShowMsg(`+${mins} мин. буста → ${adminCurrentTarget.name}`);
+    if (adminCurrentTarget.name === playerName) boostUntil = newEnd;
+}
+
+async function adminResetPlayer() {
+    if (!adminCurrentTarget) { adminShowMsg("Выберите игрока", "error"); return; }
+    if (!confirm(`Сбросить ВСЁ для ${adminCurrentTarget.name}? Это нельзя отменить!`)) return;
+    const { error } = await supabaseClient.from("leaderboard").update({
+        score: 0, total_score: 0, macrame_points: 0, boosters_count: 0,
+        boost_until: null, owned_skins: ["natalia"], current_skin: "natalia",
+        owned_player_skins: ["default"], current_player_skin: "default"
+    }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminShowMsg(`${adminCurrentTarget.name} полностью сброшен`);
+}
+
+async function adminDeletePlayer() {
+    if (!adminCurrentTarget) { adminShowMsg("Выберите игрока", "error"); return; }
+    if (adminCurrentTarget.name === ADMIN_NICK) { adminShowMsg("Нельзя удалить себя!", "error"); return; }
+    if (!confirm(`Удалить игрока ${adminCurrentTarget.name} навсегда?`)) return;
+    const { error } = await supabaseClient.from("leaderboard").delete().eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminShowMsg(`${adminCurrentTarget.name} удалён`);
+    adminCurrentTarget = null;
+    document.getElementById("adminGiveTargetInfo").textContent = "";
+}
+
+async function adminLoadStats() {
+    const container = document.getElementById("adminDbStats");
+    container.innerHTML = `<div class="admin-notice">Загрузка...</div>`;
+    const { data, count } = await supabaseClient.from("leaderboard").select("*", { count: 'exact' });
+    if (!data) { container.innerHTML = `<div class="admin-notice">Ошибка загрузки</div>`; return; }
+
+    const totalM = data.reduce((s, r) => s + (r.macrame_points || 0), 0);
+    const totalB = data.reduce((s, r) => s + (r.boosters_count || 0), 0);
+    const topScore = data.reduce((a, b) => (b.score || 0) > (a.score || 0) ? b : a, {});
+    const richest = data.reduce((a, b) => (b.macrame_points || 0) > (a.macrame_points || 0) ? b : a, {});
+    const activeSince24h = data.filter(r => r.last_game_at && new Date(r.last_game_at) > new Date(Date.now() - 86400000)).length;
+    const boostActive = data.filter(r => r.boost_until && new Date(r.boost_until) > new Date()).length;
+
+    container.innerHTML = `
+        <div class="admin-stat-grid">
+            <div class="admin-stat"><div class="admin-stat-l">👥 Всего игроков</div><div class="admin-stat-v" style="color:#67e8f9;">${data.length}</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">🎮 Активны (24ч)</div><div class="admin-stat-v" style="color:#6ee7b7;">${activeSince24h}</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">🧶 Всего макраме</div><div class="admin-stat-v" style="color:#fbbf24;">${totalM.toLocaleString()}</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">⚡ Бустеры в запасе</div><div class="admin-stat-v" style="color:#a78bfa;">${totalB}</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">🚀 Буст активен</div><div class="admin-stat-v" style="color:#f97316;">${boostActive} чел.</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">🏆 Топ рекорд</div><div class="admin-stat-v" style="color:#c084fc; font-size:11px;">${topScore.name}: ${topScore.score}</div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:10px; padding:10px; margin-top:8px;">
+            <div class="admin-stat-l" style="margin-bottom:6px;">💰 Богатейший игрок</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-weight:800; color:#e879f9;">${richest.name}</span>
+                <span style="font-size:12px; color:#fbbf24; font-weight:700;">${(richest.macrame_points || 0).toLocaleString()} 🧶</span>
+            </div>
+        </div>
+        <div style="margin-top:10px; font-size:10px; color:var(--text-dim); text-align:center;">
+            Обновлено: ${new Date().toLocaleTimeString('ru')}
+        </div>
+    `;
+}
+
+// END ADMIN PANEL ────────────────────────────────────────────────────────────
 checkAutoLogin(); initOnline(); window.dispatchEvent(new Event('resize'));
 window.addEventListener("mousemove", (e) => { player.x = e.clientX; player.y = e.clientY; });
 window.addEventListener("touchmove", (e) => { 
