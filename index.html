@@ -1166,6 +1166,94 @@ function spawnPoint() {
     points.push({ x: Math.random() * (canvas.width - 50) + 25, y: Math.random() * (canvas.height - 50) + 25, r: canvas.width * (type === "combo" ? 0.033 : 0.025), type });
 }
 
+function drawMacrameBall(ctx, cx, cy, r, color, isCombo) {
+    ctx.save();
+    // Base sphere with gradient
+    let baseClr = color;
+    if (isCombo) {
+        const hue = (Date.now() / 300 * 60) % 360;
+        baseClr = `hsl(${hue},80%,55%)`;
+        ctx.shadowBlur = 18; ctx.shadowColor = `hsl(${hue},100%,60%)`;
+    }
+    // Parse color to create lighter/darker variants
+    const tempC = document.createElement('canvas'); const tc = tempC.getContext('2d');
+    tc.fillStyle = baseClr; tc.fillRect(0,0,1,1);
+    const [rr,gg,bb] = tc.getImageData(0,0,1,1).data;
+    const lighter = `rgba(${Math.min(255,rr+60)},${Math.min(255,gg+60)},${Math.min(255,bb+60)},1)`;
+    const darker = `rgba(${Math.max(0,rr-40)},${Math.max(0,gg-40)},${Math.max(0,bb-40)},1)`;
+
+    // 3D sphere gradient
+    const grad = ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r);
+    grad.addColorStop(0, lighter);
+    grad.addColorStop(0.5, baseClr);
+    grad.addColorStop(1, darker);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = grad; ctx.fill();
+
+    // Yarn thread lines — curved arcs across the ball
+    ctx.lineWidth = Math.max(1, r * 0.08);
+    ctx.globalAlpha = 0.55;
+    const threadColor1 = lighter;
+    const threadColor2 = `rgba(${Math.min(255,rr+30)},${Math.min(255,gg+30)},${Math.min(255,bb+30)},0.7)`;
+
+    // Horizontal-ish threads
+    for (let i = -3; i <= 3; i++) {
+        const offsetY = i * r * 0.22;
+        const stretch = Math.sqrt(Math.max(0, r*r - offsetY*offsetY));
+        if (stretch < r * 0.2) continue;
+        ctx.beginPath();
+        ctx.strokeStyle = i % 2 === 0 ? threadColor1 : threadColor2;
+        ctx.moveTo(cx - stretch, cy + offsetY);
+        ctx.quadraticCurveTo(cx, cy + offsetY - r*0.15, cx + stretch, cy + offsetY);
+        ctx.stroke();
+    }
+    // Vertical-ish threads
+    for (let i = -3; i <= 3; i++) {
+        const offsetX = i * r * 0.22;
+        const stretch = Math.sqrt(Math.max(0, r*r - offsetX*offsetX));
+        if (stretch < r * 0.2) continue;
+        ctx.beginPath();
+        ctx.strokeStyle = i % 2 === 0 ? threadColor2 : threadColor1;
+        ctx.moveTo(cx + offsetX, cy - stretch);
+        ctx.quadraticCurveTo(cx + offsetX + r*0.15, cy, cx + offsetX, cy + stretch);
+        ctx.stroke();
+    }
+    // Diagonal threads for texture density
+    for (let i = -2; i <= 2; i++) {
+        const off = i * r * 0.3;
+        ctx.beginPath();
+        ctx.strokeStyle = threadColor1;
+        ctx.lineWidth = Math.max(0.5, r * 0.05);
+        ctx.moveTo(cx - r*0.7 + off, cy - r*0.7);
+        ctx.quadraticCurveTo(cx + off*0.5, cy, cx + r*0.7 + off, cy + r*0.7);
+        ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1.0;
+    // Highlight / specular
+    const spec = ctx.createRadialGradient(cx - r*0.35, cy - r*0.35, r*0.05, cx - r*0.2, cy - r*0.2, r*0.5);
+    spec.addColorStop(0, 'rgba(255,255,255,0.45)');
+    spec.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = spec; ctx.fill();
+
+    // Loose thread tail
+    ctx.beginPath();
+    ctx.strokeStyle = baseClr;
+    ctx.lineWidth = Math.max(1, r * 0.1);
+    ctx.lineCap = 'round';
+    const tailAngle = (Date.now() / 1000 + cx) % (Math.PI * 2);
+    const tx = cx + Math.cos(tailAngle * 0.3 + 0.5) * r;
+    const ty = cy + Math.sin(tailAngle * 0.3 + 0.5) * r;
+    ctx.moveTo(tx, ty);
+    const wave = Math.sin(Date.now() / 400 + cx) * r * 0.3;
+    ctx.quadraticCurveTo(tx + r*0.5 + wave, ty + r*0.4, tx + r*0.3 + wave*0.5, ty + r*0.8);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+}
+
 function update() {
     if (!running) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1181,19 +1269,8 @@ function update() {
     }
 
     points.forEach((p, i) => {
-        ctx.beginPath();
-        if (p.type === "combo") {
-            // Animated rainbow glow for combo orb
-            const t = Date.now() / 300;
-            const hue = (t * 60) % 360;
-            ctx.shadowBlur = 18; ctx.shadowColor = `hsl(${hue},100%,60%)`;
-            ctx.fillStyle = `hsl(${hue},100%,60%)`;
-        } else {
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
-        }
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur = 0;
+        const baseColor = p.type === "combo" ? null : {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
+        drawMacrameBall(ctx, p.x, p.y, p.r, baseColor, p.type === "combo");
 
         // Draw combo orb inner "x2" label
         if (p.type === "combo") {
