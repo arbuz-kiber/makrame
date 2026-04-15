@@ -1137,7 +1137,8 @@
     <div class="inner-card">
         <h2 class="inner-title">🏆 Зал славы</h2>
         <div class="tabs-container">
-            <button id="btnRec" class="tab-btn active" onclick="loadTab('score')">Рекорды</button>
+            <button id="btnArchive" class="tab-btn" onclick="loadTab('score')">Архив</button>
+            <button id="btnCurrent" class="tab-btn active" onclick="loadTab('score_new')">Текущий</button>
             <button id="btnSum" class="tab-btn" onclick="loadTab('total_score')">Всего</button>
         </div>
         <div class="table-container">
@@ -1246,10 +1247,15 @@
             </div>
 
             <!-- Score -->
-            <div class="admin-action-label">🏆 Установить рекорд</div>
+            <div class="admin-action-label">🏆 Установить рекорд (архив)</div>
             <div class="admin-action-row" style="margin-bottom:10px;">
-                <input type="number" id="adminSetScore" placeholder="Новый рекорд" min="0">
+                <input type="number" id="adminSetScore" placeholder="Архив рекорд" min="0">
                 <button class="btn-admin-set" onclick="adminSetScore()">УСТАНОВИТЬ</button>
+            </div>
+            <div class="admin-action-label">🔥 Установить рекорд (текущий)</div>
+            <div class="admin-action-row" style="margin-bottom:10px;">
+                <input type="number" id="adminSetScoreNew" placeholder="Текущий рекорд" min="0">
+                <button class="btn-admin-set" onclick="adminSetScoreNew()">УСТАНОВИТЬ</button>
             </div>
 
             <!-- Enemy skins -->
@@ -1368,7 +1374,7 @@ async function handleAuth() {
         else { err.innerText = "Неверный пароль"; err.style.display = "block"; }
     } else {
         const { data: newUser } = await supabaseClient.from('leaderboard').insert([{ 
-            name, password: pass, score: 0, total_score: 0, macrame_points: 0, 
+            name, password: pass, score: 0, score_new: 0, total_score: 0, macrame_points: 0, 
             owned_skins: ["natalia"], current_skin: "natalia",
             owned_player_skins: ["default"], current_player_skin: "default",
             boosters_count: 0 
@@ -1383,7 +1389,7 @@ function loginSuccess(user, save = true) {
     ownedPlayerSkins = user.owned_player_skins || ["default"]; currentPlayerSkin = user.current_player_skin || "default";
     boostersCount = user.boosters_count || 0; boostUntil = user.boost_until;
     // Sync best score from server
-    if ((user.score || 0) > bestScore) { bestScore = user.score; localStorage.setItem('bestScore', bestScore); }
+    if ((user.score_new || 0) > bestScore) { bestScore = user.score_new; localStorage.setItem('bestScore', bestScore); }
     if (save) localStorage.setItem('game_user', JSON.stringify(user));
     document.getElementById("authSection").style.display = "none";
     document.getElementById("gameSection").style.display = "block";
@@ -1401,9 +1407,9 @@ async function saveResults(s) {
     if (data) {
         const newMacrameTotal = (data.macrame_points || 0) + addedPoints;
         const newTotalScore = (data.total_score || 0) + s;
-        const newBestScore = Math.max(s, data.score || 0);
+        const newBestScoreNew = Math.max(s, data.score_new || 0);
         await supabaseClient.from("leaderboard").update({
-            score: newBestScore, total_score: newTotalScore, macrame_points: newMacrameTotal,
+            score_new: newBestScoreNew, total_score: newTotalScore, macrame_points: newMacrameTotal,
             last_game_at: new Date().toISOString(),
             last_game_score: s,
             last_game_duration_seconds: durationSeconds
@@ -1592,10 +1598,10 @@ const enemyImg = new Image();
 
 function spawnPoint() {
     const r = Math.random(); let type = "common";
-    if (r > 0.995) type = "combo";
-    else if (r > 0.992) type = "magnet";
-    else if (r > 0.98) type = "shield"; else if (r > 0.94) type = "green"; 
-    else if (r > 0.88) type = "yellow"; else if (r > 0.80) type = "epic"; else if (r > 0.70) type = "rare";
+    if (r > 0.998) type = "combo";
+    else if (r > 0.993) type = "magnet";
+    else if (r > 0.985) type = "shield"; else if (r > 0.96) type = "green";
+    else if (r > 0.92) type = "yellow"; else if (r > 0.86) type = "epic"; else if (r > 0.76) type = "rare";
     points.push({ x: Math.random() * (canvas.width - 50) + 25, y: Math.random() * (canvas.height - 50) + 25, r: canvas.width * (type === "combo" ? 0.033 : (type === "magnet" ? 0.03 : 0.025)), type });
 }
 
@@ -1927,10 +1933,11 @@ async function showLeaderboard() { document.getElementById("leaderboard").style.
 let leaderboardAllData = [];
 
 async function loadTab(mode) {
-    document.getElementById("btnRec").className = mode === 'score' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById("btnArchive").className = mode === 'score' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById("btnCurrent").className = mode === 'score_new' ? 'tab-btn active' : 'tab-btn';
     document.getElementById("btnSum").className = mode === 'total_score' ? 'tab-btn active' : 'tab-btn';
-    document.getElementById("typeLabel").innerText = mode === 'score' ? "Рекорд" : "Сумма";
-    const { data } = await supabaseClient.from("leaderboard").select("name, score, total_score").order(mode, { ascending: false }).limit(50);
+    document.getElementById("typeLabel").innerText = mode === 'score' ? "Архив" : (mode === 'score_new' ? "Текущий" : "Сумма");
+    const { data } = await supabaseClient.from("leaderboard").select("name, score, score_new, total_score").order(mode, { ascending: false }).limit(50);
     leaderboardAllData = data || [];
     document.getElementById("leaderBody").innerHTML = data?.map((p, i) => {
         const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1;
@@ -1952,7 +1959,7 @@ async function openProfile(name) {
 
     // Fetch full profile data
     const { data: u } = await supabaseClient.from("leaderboard")
-        .select("name, score, total_score, macrame_points, boosters_count, current_skin, current_player_skin, owned_skins, owned_player_skins, last_game_at, last_game_score, last_game_duration_seconds")
+        .select("name, score, score_new, total_score, macrame_points, boosters_count, current_skin, current_player_skin, owned_skins, owned_player_skins, last_game_at, last_game_score, last_game_duration_seconds")
         .eq("name", name).maybeSingle();
 
     // Fetch rank by score and total_score
@@ -2006,8 +2013,12 @@ async function openProfile(name) {
 
         <div class="profile-stats-grid">
             <div class="stat-box">
-                <div class="stat-label">🏆 Рекорд</div>
+                <div class="stat-label">🏆 Архив</div>
                 <div class="stat-value purple">${u.score || 0}</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">🔥 Текущий</div>
+                <div class="stat-value purple">${u.score_new || 0}</div>
             </div>
             <div class="stat-box">
                 <div class="stat-label">∑ Сумма</div>
@@ -2085,7 +2096,7 @@ function startGame() {
     document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; shieldCount = 0; enemyFreezeTimer = 0;
     comboMultiplier = 1; comboTimer = 0; magnetTimer = 0;
     document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
-    for (let i = 0; i < 9; i++) spawnPoint(); running = true; update();
+    for (let i = 0; i < 6; i++) spawnPoint(); running = true; update();
 }
 
 function gameOver() { 
@@ -2179,7 +2190,8 @@ function adminRenderPlayerProfile(u, container) {
                 <img src="${enemySkin.img}" style="width:36px;height:36px;border-radius:9px;object-fit:cover;border:1px solid rgba(255,255,255,0.06); margin-left:auto;" onerror="this.src='natalia.jpg'">
             </div>
             <div class="admin-stat-grid">
-                <div class="admin-stat"><div class="admin-stat-l">🏆 Рекорд</div><div class="admin-stat-v" style="color:#c084fc;">${u.score || 0}</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">🏆 Архив</div><div class="admin-stat-v" style="color:#c084fc;">${u.score || 0}</div></div>
+                <div class="admin-stat"><div class="admin-stat-l">🔥 Текущий</div><div class="admin-stat-v" style="color:#f472b6;">${u.score_new || 0}</div></div>
                 <div class="admin-stat"><div class="admin-stat-l">∑ Сумма</div><div class="admin-stat-v" style="color:#ec4899;">${u.total_score || 0}</div></div>
                 <div class="admin-stat"><div class="admin-stat-l">🧶 Макраме</div><div class="admin-stat-v" style="color:#fbbf24;">${u.macrame_points || 0}</div></div>
                 <div class="admin-stat"><div class="admin-stat-l">⚡ Бустеры</div><div class="admin-stat-v" style="color:#6ee7b7;">${u.boosters_count || 0} шт.</div></div>
@@ -2317,7 +2329,7 @@ function adminRenderAllList(players) {
             <div class="all-player-num">${i + 1}</div>
             <div class="all-player-name">${p.name}</div>
             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-                <div class="all-player-score">${p.score || 0}</div>
+                <div class="all-player-score">${p.score_new || 0} <span style="font-size:9px;color:var(--text-dim)">/ ${p.score || 0}</span></div>
                 <div style="font-size:10px; color:#fbbf24; font-weight:700;">${p.macrame_points || 0} 🧶</div>
             </div>
         </div>
@@ -2400,7 +2412,17 @@ async function adminSetScore() {
     const { error } = await supabaseClient.from("leaderboard").update({ score: val }).eq("id", adminCurrentTarget.id);
     if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
     adminCurrentTarget.score = val;
-    adminShowMsg(`Рекорд ${adminCurrentTarget.name} = ${val} 🏆`);
+    adminShowMsg(`Архив рекорд ${adminCurrentTarget.name} = ${val} 🏆`);
+}
+
+async function adminSetScoreNew() {
+    if (!adminCurrentTarget) { adminShowMsg("Сначала выберите игрока", "error"); return; }
+    const val = parseInt(document.getElementById("adminSetScoreNew").value);
+    if (isNaN(val) || val < 0) { adminShowMsg("Введите корректное число", "error"); return; }
+    const { error } = await supabaseClient.from("leaderboard").update({ score_new: val }).eq("id", adminCurrentTarget.id);
+    if (error) { adminShowMsg("Ошибка: " + error.message, "error"); return; }
+    adminCurrentTarget.score_new = val;
+    adminShowMsg(`Текущий рекорд ${adminCurrentTarget.name} = ${val} 🔥`);
 }
 
 async function adminGiveSkins(type) {
@@ -2471,6 +2493,7 @@ async function adminLoadStats() {
     const totalM = data.reduce((s, r) => s + (r.macrame_points || 0), 0);
     const totalB = data.reduce((s, r) => s + (r.boosters_count || 0), 0);
     const topScore = data.reduce((a, b) => (b.score || 0) > (a.score || 0) ? b : a, {});
+    const topScoreNew = data.reduce((a, b) => (b.score_new || 0) > (a.score_new || 0) ? b : a, {});
     const richest = data.reduce((a, b) => (b.macrame_points || 0) > (a.macrame_points || 0) ? b : a, {});
     const activeSince24h = data.filter(r => r.last_game_at && new Date(r.last_game_at) > new Date(Date.now() - 86400000)).length;
     const boostActive = data.filter(r => r.boost_until && new Date(r.boost_until) > new Date()).length;
@@ -2482,7 +2505,8 @@ async function adminLoadStats() {
             <div class="admin-stat"><div class="admin-stat-l">🧶 Всего макраме</div><div class="admin-stat-v" style="color:#fbbf24;">${totalM.toLocaleString()}</div></div>
             <div class="admin-stat"><div class="admin-stat-l">⚡ Бустеры в запасе</div><div class="admin-stat-v" style="color:#a78bfa;">${totalB}</div></div>
             <div class="admin-stat"><div class="admin-stat-l">🚀 Буст активен</div><div class="admin-stat-v" style="color:#f97316;">${boostActive} чел.</div></div>
-            <div class="admin-stat"><div class="admin-stat-l">🏆 Топ рекорд</div><div class="admin-stat-v" style="color:#c084fc; font-size:11px;">${topScore.name}: ${topScore.score}</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">🏆 Топ архив</div><div class="admin-stat-v" style="color:#c084fc; font-size:11px;">${topScore.name}: ${topScore.score}</div></div>
+            <div class="admin-stat"><div class="admin-stat-l">🔥 Топ текущий</div><div class="admin-stat-v" style="color:#f472b6; font-size:11px;">${topScoreNew.name}: ${topScoreNew.score_new}</div></div>
         </div>
         <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:10px; padding:10px; margin-top:8px;">
             <div class="admin-stat-l" style="margin-bottom:6px;">💰 Богатейший игрок</div>
