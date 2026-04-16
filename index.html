@@ -1115,19 +1115,6 @@
                 </div>
                 <input type="range" id="volumeSlider" min="0" max="100" value="100" style="width:100%; accent-color:#8b5cf6; height:6px;">
             </div>
-            <div style="margin-bottom: 16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span style="font-weight:700; font-size:13px; color:var(--text);">🧶 Реалистичность шаров</span>
-                    <span id="realismValue" style="font-weight:800; font-size:13px; color:#c084fc; font-family:'Unbounded',sans-serif;">100%</span>
-                </div>
-                <input type="range" id="realismSlider" min="0" max="100" value="100" style="width:100%; accent-color:#8b5cf6; height:6px;">
-            </div>
-            <div style="background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:14px; border:1px solid var(--card-border); margin-top:8px;">
-                <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">
-                    📱 <b style="color:var(--accent);">Телефон?</b> Ставь реалистичность на <b style="color:#10b981;">0%</b> для плавной игры.<br>
-                    💻 <b style="color:var(--primary-l);">ПК?</b> Выбирай любое значение на свой вкус!
-                </div>
-            </div>
         </div>
         <button onclick="closeOverlay('settings')" class="btn-back" style="margin-top:12px;">← Назад</button>
     </div>
@@ -1314,7 +1301,7 @@ let ownedPlayerSkins = ["default"], currentPlayerSkin = "default";
 let boostersCount = 0, boostUntil = null; 
 let currentAudio = null;
 let musicVolume = parseFloat(localStorage.getItem('setting_volume') ?? '1');
-let ballRealism = parseFloat(localStorage.getItem('setting_realism') ?? '1');
+let ballRealism = 0;
 
 const ENEMY_SKINS = {
     "natalia": { name: "Наталия", img: "natalia.jpg", price: 0, title: "Побег от Наталии", emoji: "😈" },
@@ -1429,8 +1416,6 @@ function openSettings() {
     document.getElementById("menu").style.display = "none";
     document.getElementById("volumeSlider").value = Math.round(musicVolume * 100);
     document.getElementById("volumeValue").innerText = Math.round(musicVolume * 100) + "%";
-    document.getElementById("realismSlider").value = Math.round(ballRealism * 100);
-    document.getElementById("realismValue").innerText = Math.round(ballRealism * 100) + "%";
 }
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("volumeSlider").addEventListener("input", (e) => {
@@ -1438,11 +1423,6 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("setting_volume", musicVolume);
         document.getElementById("volumeValue").innerText = e.target.value + "%";
         if (currentAudio) currentAudio.volume = musicVolume;
-    });
-    document.getElementById("realismSlider").addEventListener("input", (e) => {
-        ballRealism = e.target.value / 100;
-        localStorage.setItem("setting_realism", ballRealism);
-        document.getElementById("realismValue").innerText = e.target.value + "%";
     });
 });
 function closeOverlay(id) { document.getElementById(id).style.display = "none"; document.getElementById("menu").style.display = "flex"; }
