@@ -2036,11 +2036,11 @@ function spawnPoint() {
     else if (r > 0.993) type = "magnet";  // 0.5%
     else if (r > 0.985) type = "shield";  // 0.8%
     else if (r > 0.96) type = "green";    // 2.5%
-    else if (r > 0.90) type = "yellow";   // ✅ 6%
-    else if (r > 0.75) type = "rare";     // ✅ 15% (синий)
-    else if (r > 0.65) type = "epic";     // 10%
-    else type = "common";                 // остальное (65%)
-    
+    else if (r > 0.91) type = "yellow";   // ✅ 5%
+    else if (r > 0.78) type = "rare";     // ✅ 13% (синий)
+    else if (r > 0.68) type = "epic";     // 10%
+    else type = "common";                 // 68%
+
     points.push({
         x: Math.random() * (canvas.width - 50) + 25,
         y: Math.random() * (canvas.height - 50) + 25,
