@@ -1136,6 +1136,15 @@
         .bp-q-diff.easy   { background:#10b981; }
         .bp-q-diff.medium { background:#f59e0b; }
         .bp-q-diff.hard   { background:#ec4899; }
+        .bp-q-diff.weekly { background:linear-gradient(180deg,#facc15,#f59e0b); width:8px; box-shadow:0 0 12px rgba(250,204,21,0.5); }
+        .bp-quest.weekly  { background:linear-gradient(135deg,rgba(250,204,21,0.08),rgba(245,158,11,0.04)); border-color:rgba(250,204,21,0.25); }
+        .bp-quest-timer {
+            text-align:center; color:var(--text-muted); font-size:11px; font-weight:600;
+            padding:10px 12px; margin-top:14px;
+            background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.15);
+            border-radius:10px;
+        }
+        .bp-quest-timer b { color:#a78bfa; }
         .bp-q-info { flex:1; min-width:0; }
         .bp-q-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:5px; }
         .bp-q-bar { height:5px; background:rgba(255,255,255,0.05); border-radius:50px; overflow:hidden; }
@@ -3348,27 +3357,96 @@ const BP_REWARDS = (() => {
     return { free, premium };
 })();
 
-// Шаблоны квестов (ключ → генератор)
+// Шаблоны квестов (ключ → генератор). Много вариантов — повторяются часто.
 const BP_QUEST_TEMPLATES = {
-    // EASY (50-100)
-    collect_30:    { d:'easy',   key:'collect_coins',  goal:30,  reward:50,  title:'Собери 30 шаров за забег' },
-    play_3:        { d:'easy',   key:'play_run',       goal:3,   reward:80,  title:'Сыграй 3 забега' },
-    score_50:      { d:'easy',   key:'score_total',    goal:50,  reward:60,  title:'Набери 50 очков за забег' },
-    collect_50:    { d:'easy',   key:'collect_coins',  goal:50,  reward:100, title:'Собери 50 шаров за забег' },
-    survive_20:    { d:'easy',   key:'survive_secs',   goal:20,  reward:70,  title:'Выживи 20 секунд за забег' },
-    // MEDIUM (150-250)
-    balls_total_200:{d:'medium', key:'collect_total',  goal:200, reward:200, title:'Собери 200 шаров суммарно' },
-    combo_5:       { d:'medium', key:'use_combo',      goal:5,   reward:250, title:'Подбери 5 комбо-шаров' },
-    score_150:     { d:'medium', key:'score_total',    goal:150, reward:220, title:'Набери 150 очков за забег' },
-    play_7:        { d:'medium', key:'play_run',       goal:7,   reward:180, title:'Сыграй 7 забегов' },
-    rare_3:        { d:'medium', key:'rare_pickup',    goal:3,   reward:200, title:'Собери 3 редких шара' },
-    // HARD (300-500)
-    score_300:     { d:'hard',   key:'score_total',    goal:300, reward:400, title:'Набери 300 очков за забег' },
-    survive_60:    { d:'hard',   key:'survive_secs',   goal:60,  reward:350, title:'Выживи 60 секунд за забег' },
-    beat_record:   { d:'hard',   key:'beat_record',    goal:1,   reward:500, title:'Побей свой рекорд' },
-    combo_x4:      { d:'hard',   key:'combo_x4',       goal:1,   reward:400, title:'Получи комбо x4' },
-    balls_total_500:{d:'hard',   key:'collect_total',  goal:500, reward:450, title:'Собери 500 шаров суммарно' },
+    // ===== EASY (40-120 🎟) =====
+    e_collect_20:   { d:'easy', key:'collect_coins', goal:20,  reward:40,  title:'Собери 20 шаров за забег' },
+    e_collect_30:   { d:'easy', key:'collect_coins', goal:30,  reward:50,  title:'Собери 30 шаров за забег' },
+    e_collect_40:   { d:'easy', key:'collect_coins', goal:40,  reward:70,  title:'Собери 40 шаров за забег' },
+    e_collect_50:   { d:'easy', key:'collect_coins', goal:50,  reward:100, title:'Собери 50 шаров за забег' },
+    e_play_2:       { d:'easy', key:'play_run',      goal:2,   reward:50,  title:'Сыграй 2 забега' },
+    e_play_3:       { d:'easy', key:'play_run',      goal:3,   reward:80,  title:'Сыграй 3 забега' },
+    e_play_5:       { d:'easy', key:'play_run',      goal:5,   reward:120, title:'Сыграй 5 забегов' },
+    e_score_30:     { d:'easy', key:'score_total',   goal:30,  reward:40,  title:'Набери 30 очков за забег' },
+    e_score_50:     { d:'easy', key:'score_total',   goal:50,  reward:60,  title:'Набери 50 очков за забег' },
+    e_score_75:     { d:'easy', key:'score_total',   goal:75,  reward:90,  title:'Набери 75 очков за забег' },
+    e_score_100:    { d:'easy', key:'score_total',   goal:100, reward:120, title:'Набери 100 очков за забег' },
+    e_survive_15:   { d:'easy', key:'survive_secs',  goal:15,  reward:50,  title:'Выживи 15 секунд за забег' },
+    e_survive_20:   { d:'easy', key:'survive_secs',  goal:20,  reward:70,  title:'Выживи 20 секунд за забег' },
+    e_survive_30:   { d:'easy', key:'survive_secs',  goal:30,  reward:100, title:'Выживи 30 секунд за забег' },
+    e_total_50:     { d:'easy', key:'collect_total', goal:50,  reward:60,  title:'Собери 50 шаров суммарно' },
+    e_total_100:    { d:'easy', key:'collect_total', goal:100, reward:90,  title:'Собери 100 шаров суммарно' },
+    e_magnet_1:     { d:'easy', key:'use_magnet',    goal:1,   reward:60,  title:'Используй магнит' },
+    e_slow_1:       { d:'easy', key:'use_slow',      goal:1,   reward:60,  title:'Используй замедление' },
+    e_combo_1:      { d:'easy', key:'use_combo',     goal:1,   reward:50,  title:'Подбери комбо-шар' },
+    e_combo_2:      { d:'easy', key:'use_combo',     goal:2,   reward:90,  title:'Подбери 2 комбо-шара' },
+    e_booster_1:    { d:'easy', key:'use_booster',   goal:1,   reward:70,  title:'Используй любой бустер' },
+
+    // ===== MEDIUM (130-280 🎟) =====
+    m_collect_70:   { d:'medium', key:'collect_coins', goal:70,  reward:160, title:'Собери 70 шаров за забег' },
+    m_collect_100:  { d:'medium', key:'collect_coins', goal:100, reward:230, title:'Собери 100 шаров за забег' },
+    m_total_150:    { d:'medium', key:'collect_total', goal:150, reward:160, title:'Собери 150 шаров суммарно' },
+    m_total_200:    { d:'medium', key:'collect_total', goal:200, reward:200, title:'Собери 200 шаров суммарно' },
+    m_total_300:    { d:'medium', key:'collect_total', goal:300, reward:260, title:'Собери 300 шаров суммарно' },
+    m_combo_3:      { d:'medium', key:'use_combo',     goal:3,   reward:150, title:'Подбери 3 комбо-шара' },
+    m_combo_5:      { d:'medium', key:'use_combo',     goal:5,   reward:250, title:'Подбери 5 комбо-шаров' },
+    m_combo_8:      { d:'medium', key:'use_combo',     goal:8,   reward:280, title:'Подбери 8 комбо-шаров' },
+    m_score_130:    { d:'medium', key:'score_total',   goal:130, reward:170, title:'Набери 130 очков за забег' },
+    m_score_150:    { d:'medium', key:'score_total',   goal:150, reward:220, title:'Набери 150 очков за забег' },
+    m_score_200:    { d:'medium', key:'score_total',   goal:200, reward:270, title:'Набери 200 очков за забег' },
+    m_play_5:       { d:'medium', key:'play_run',      goal:5,   reward:140, title:'Сыграй 5 забегов' },
+    m_play_7:       { d:'medium', key:'play_run',      goal:7,   reward:180, title:'Сыграй 7 забегов' },
+    m_play_10:      { d:'medium', key:'play_run',      goal:10,  reward:240, title:'Сыграй 10 забегов' },
+    m_survive_40:   { d:'medium', key:'survive_secs',  goal:40,  reward:170, title:'Выживи 40 секунд за забег' },
+    m_survive_50:   { d:'medium', key:'survive_secs',  goal:50,  reward:220, title:'Выживи 50 секунд за забег' },
+    m_rare_2:       { d:'medium', key:'rare_pickup',   goal:2,   reward:160, title:'Собери 2 редких шара' },
+    m_rare_3:       { d:'medium', key:'rare_pickup',   goal:3,   reward:200, title:'Собери 3 редких шара' },
+    m_magnet_3:     { d:'medium', key:'use_magnet',    goal:3,   reward:160, title:'Используй магнит 3 раза' },
+    m_slow_3:       { d:'medium', key:'use_slow',      goal:3,   reward:160, title:'Используй замедление 3 раза' },
+    m_booster_3:    { d:'medium', key:'use_booster',   goal:3,   reward:170, title:'Используй 3 бустера' },
+
+    // ===== HARD (300-550 🎟) =====
+    h_score_250:    { d:'hard', key:'score_total',   goal:250, reward:350, title:'Набери 250 очков за забег' },
+    h_score_300:    { d:'hard', key:'score_total',   goal:300, reward:400, title:'Набери 300 очков за забег' },
+    h_score_400:    { d:'hard', key:'score_total',   goal:400, reward:500, title:'Набери 400 очков за забег' },
+    h_score_500:    { d:'hard', key:'score_total',   goal:500, reward:550, title:'Набери 500 очков за забег' },
+    h_survive_60:   { d:'hard', key:'survive_secs',  goal:60,  reward:350, title:'Выживи 60 секунд за забег' },
+    h_survive_90:   { d:'hard', key:'survive_secs',  goal:90,  reward:450, title:'Выживи 90 секунд за забег' },
+    h_survive_120:  { d:'hard', key:'survive_secs',  goal:120, reward:550, title:'Выживи 2 минуты за забег' },
+    h_total_500:    { d:'hard', key:'collect_total', goal:500, reward:400, title:'Собери 500 шаров суммарно' },
+    h_total_750:    { d:'hard', key:'collect_total', goal:750, reward:480, title:'Собери 750 шаров суммарно' },
+    h_total_1000:   { d:'hard', key:'collect_total', goal:1000, reward:550, title:'Собери 1000 шаров суммарно' },
+    h_collect_150:  { d:'hard', key:'collect_coins', goal:150, reward:400, title:'Собери 150 шаров за забег' },
+    h_combo_x4:     { d:'hard', key:'combo_x4',      goal:1,   reward:400, title:'Получи комбо x4' },
+    h_combo_x4_3:   { d:'hard', key:'combo_x4',      goal:3,   reward:550, title:'Получи комбо x4 трижды' },
+    h_combo_12:     { d:'hard', key:'use_combo',     goal:12,  reward:400, title:'Подбери 12 комбо-шаров' },
+    h_play_15:      { d:'hard', key:'play_run',      goal:15,  reward:350, title:'Сыграй 15 забегов' },
+    h_play_20:      { d:'hard', key:'play_run',      goal:20,  reward:450, title:'Сыграй 20 забегов' },
+    h_rare_5:       { d:'hard', key:'rare_pickup',   goal:5,   reward:400, title:'Собери 5 редких шаров' },
+    h_rare_8:       { d:'hard', key:'rare_pickup',   goal:8,   reward:550, title:'Собери 8 редких шаров' },
+    h_booster_7:    { d:'hard', key:'use_booster',   goal:7,   reward:350, title:'Используй 7 бустеров' },
 };
+
+// ── ЕЖЕНЕДЕЛЬНЫЕ КВЕСТЫ (очень сложные / длинные, награда 1500-3000) ──
+const BP_WEEKLY_TEMPLATES = {
+    weekly_score_marathon: { d:'weekly', key:'score_total',   goal:800,  reward:1800, title:'🏆 Марафон: набери 800 очков за один забег' },
+    weekly_grand_total:    { d:'weekly', key:'collect_total', goal:5000, reward:2200, title:'🏆 Жатва недели: собери 5000 шаров суммарно' },
+    weekly_iron_will:      { d:'weekly', key:'survive_secs',  goal:180,  reward:2000, title:'🏆 Железная воля: выживи 3 минуты за забег' },
+    weekly_centurion:      { d:'weekly', key:'play_run',      goal:75,   reward:1500, title:'🏆 Центурион: сыграй 75 забегов' },
+    weekly_collector:      { d:'weekly', key:'collect_total', goal:8000, reward:3000, title:'🏆 Коллекционер: собери 8000 шаров за неделю' },
+    weekly_combo_master:   { d:'weekly', key:'use_combo',     goal:50,   reward:2000, title:'🏆 Комбо-мастер: подбери 50 комбо-шаров за неделю' },
+    weekly_x4_hunter:      { d:'weekly', key:'combo_x4',      goal:10,   reward:2500, title:'🏆 Охотник на x4: получи комбо x4 десять раз' },
+    weekly_rare_hoarder:   { d:'weekly', key:'rare_pickup',   goal:25,   reward:2400, title:'🏆 Хранитель редкостей: собери 25 редких шаров' },
+    weekly_score_hunter:   { d:'weekly', key:'score_total',   goal:1200, reward:2800, title:'🏆 Охотник на очки: набери 1200 очков за один забег' },
+};
+
+// Добавление новых ежедневных квестов: интервал 2-5 часов
+const BP_QUEST_INTERVAL_MIN = 2 * 60 * 60 * 1000; // 2 часа
+const BP_QUEST_INTERVAL_MAX = 5 * 60 * 60 * 1000; // 5 часов
+const BP_WEEKLY_DURATION    = 7 * 24 * 60 * 60 * 1000; // 7 дней
+function bpRandomInterval() {
+    return BP_QUEST_INTERVAL_MIN + Math.floor(Math.random() * (BP_QUEST_INTERVAL_MAX - BP_QUEST_INTERVAL_MIN));
+}
 
 // ── State ──
 let bpState = { tokens:0, has_premium:false, claimed_free:[], claimed_premium:[] };
@@ -3405,9 +3483,13 @@ async function bpInit() {
         tokens: prog?.tokens || 0,
         has_premium: !!prog?.has_premium,
         claimed_free: prog?.claimed_free || [],
-        claimed_premium: prog?.claimed_premium || []
+        claimed_premium: prog?.claimed_premium || [],
+        next_quest_at: prog?.next_quest_at ? new Date(prog.next_quest_at).getTime() : 0,
+        weekly_started_at: prog?.weekly_started_at ? new Date(prog.weekly_started_at).getTime() : 0
     };
     await bpLoadQuests();
+    await bpEnsureWeeklyQuests();
+    await bpEnsurePeriodicQuests();
     if (Object.keys(bpPendingProgress).length) {
         const pending = { ...bpPendingProgress };
         bpPendingProgress = {};
@@ -3420,38 +3502,103 @@ async function bpInit() {
 
 async function bpLoadQuests() {
     if (!currentID) return;
-    const today = new Date().toISOString().slice(0,10);
+    // Берём ВСЕ незаклеймленные квесты + заклеймленные за последние 24ч
+    const cutoff = new Date(Date.now() - 24*60*60*1000).toISOString();
     let { data } = await supabaseClient.from('daily_quests').select('*')
-        .eq('user_id', currentID).eq('quest_date', today);
+        .eq('user_id', currentID)
+        .or(`claimed.eq.false,created_at.gte.${cutoff}`)
+        .order('created_at', { ascending: false });
 
-    const validQuestKeys = new Set(Object.values(BP_QUEST_TEMPLATES).map(q => q.key + '|' + q.title));
-    const hasLegacy = (data || []).some(q => !validQuestKeys.has(q.quest_key + '|' + q.title));
-
-    if (hasLegacy) {
-        await supabaseClient.from('daily_quests').delete().eq('user_id', currentID).eq('quest_date', today);
-        data = [];
-    }
-
-    if (!data || data.length === 0) {
-        const all = Object.values(BP_QUEST_TEMPLATES);
-        const easy   = all.filter(q => q.d === 'easy');
-        const medium = all.filter(q => q.d === 'medium');
-        const hard   = all.filter(q => q.d === 'hard');
-        const pick = (arr, n) => arr.slice().sort(() => Math.random()-0.5).slice(0, n);
-        const count = 4 + Math.floor(Math.random() * 4);
-        const eN = Math.max(2, Math.round(count * 0.4));
-        const mN = Math.max(1, Math.round(count * 0.35));
-        const hN = Math.max(1, count - eN - mN);
-        const chosen = [...pick(easy, eN), ...pick(medium, mN), ...pick(hard, hN)];
-        const rows = chosen.map(q => ({
-            user_id: currentID, quest_date: today, quest_key: q.key,
-            title: q.title, difficulty: q.d, goal: q.goal, reward_tokens: q.reward,
-            progress: 0, completed: false, claimed: false
-        }));
-        const ins = await supabaseClient.from('daily_quests').insert(rows).select();
-        data = ins.data || [];
+    // Удаляем weekly с истёкшим сроком (если не заклеймили)
+    const now = Date.now();
+    const expired = (data || []).filter(q => q.difficulty === 'weekly' && q.expires_at && new Date(q.expires_at).getTime() < now && !q.claimed);
+    if (expired.length) {
+        await supabaseClient.from('daily_quests').delete().in('id', expired.map(q => q.id));
+        data = data.filter(q => !expired.includes(q));
     }
     bpQuests = data || [];
+}
+
+// Генерация N случайных ежедневных квестов и вставка в БД
+async function bpInsertDailyQuests(count) {
+    const all = Object.values(BP_QUEST_TEMPLATES);
+    const easy   = all.filter(q => q.d === 'easy');
+    const medium = all.filter(q => q.d === 'medium');
+    const hard   = all.filter(q => q.d === 'hard');
+    const pick = (arr, n) => arr.slice().sort(() => Math.random()-0.5).slice(0, Math.min(n, arr.length));
+    const eN = Math.max(1, Math.round(count * 0.4));
+    const mN = Math.max(1, Math.round(count * 0.35));
+    const hN = Math.max(1, count - eN - mN);
+    const chosen = [...pick(easy, eN), ...pick(medium, mN), ...pick(hard, hN)];
+    const today = new Date().toISOString().slice(0,10);
+    const rows = chosen.map(q => ({
+        user_id: currentID, quest_date: today, quest_key: q.key,
+        title: q.title, difficulty: q.d, goal: q.goal, reward_tokens: q.reward,
+        progress: 0, completed: false, claimed: false
+    }));
+    const ins = await supabaseClient.from('daily_quests').insert(rows).select();
+    if (ins.data) bpQuests = [...(ins.data), ...bpQuests];
+}
+
+// Если пришло время — добавляем 2-4 новых ежедневных квеста и сдвигаем таймер
+async function bpEnsurePeriodicQuests() {
+    const now = Date.now();
+    if (!bpState.next_quest_at) {
+        const dailyCount = bpQuests.filter(q => q.difficulty !== 'weekly').length;
+        if (dailyCount === 0) {
+            await bpInsertDailyQuests(4);
+        }
+        const next = now + bpRandomInterval();
+        bpState.next_quest_at = next;
+        await supabaseClient.from('battle_pass_progress')
+            .update({ next_quest_at: new Date(next).toISOString() })
+            .eq('user_id', currentID);
+        return;
+    }
+    let safety = 0;
+    while (bpState.next_quest_at <= now && safety < 5) {
+        const count = 2 + Math.floor(Math.random() * 3); // 2-4
+        await bpInsertDailyQuests(count);
+        bpState.next_quest_at += bpRandomInterval();
+        safety++;
+    }
+    if (safety > 0) {
+        await supabaseClient.from('battle_pass_progress')
+            .update({ next_quest_at: new Date(bpState.next_quest_at).toISOString() })
+            .eq('user_id', currentID);
+    }
+}
+
+// Еженедельные квесты: 1-2 штуки на 7 дней
+async function bpEnsureWeeklyQuests() {
+    const now = Date.now();
+    const activeWeekly = bpQuests.filter(q => q.difficulty === 'weekly' && !q.claimed);
+    const weekExpired = bpState.weekly_started_at && (now - bpState.weekly_started_at) >= BP_WEEKLY_DURATION;
+    if (activeWeekly.length > 0 && !weekExpired) return;
+
+    if (weekExpired && activeWeekly.length) {
+        await supabaseClient.from('daily_quests').delete().in('id', activeWeekly.map(q => q.id));
+        bpQuests = bpQuests.filter(q => !activeWeekly.includes(q));
+    }
+
+    const weekly = Object.values(BP_WEEKLY_TEMPLATES).slice().sort(() => Math.random()-0.5);
+    const count = 1 + Math.floor(Math.random() * 2); // 1-2
+    const chosen = weekly.slice(0, count);
+    const expiresAt = new Date(now + BP_WEEKLY_DURATION).toISOString();
+    const today = new Date().toISOString().slice(0,10);
+    const rows = chosen.map(q => ({
+        user_id: currentID, quest_date: today, quest_key: q.key,
+        title: q.title, difficulty: q.d, goal: q.goal, reward_tokens: q.reward,
+        progress: 0, completed: false, claimed: false,
+        expires_at: expiresAt
+    }));
+    const ins = await supabaseClient.from('daily_quests').insert(rows).select();
+    if (ins.data) bpQuests = [...(ins.data), ...bpQuests];
+
+    bpState.weekly_started_at = now;
+    await supabaseClient.from('battle_pass_progress')
+        .update({ weekly_started_at: new Date(now).toISOString() })
+        .eq('user_id', currentID);
 }
 
 // ── Tracking (вызывается из gameplay) ──
@@ -3508,8 +3655,7 @@ function bpOnGameOver(finalScore) {
     bpQuests.filter(q => q.quest_key === 'survive_secs' && !q.completed).forEach(q => {
         if (secs >= q.goal) bpTrackProgress('survive_secs', q.goal);
     });
-    // рекорд
-    if (finalScore > 0 && finalScore >= bestScore) bpTrackProgress('beat_record', 1);
+    // (квест на рекорд удалён — больше не трекаем)
 }
 
 // (бустер уже трекается через bpHook('booster_used') внутри activateBooster)
@@ -3563,7 +3709,7 @@ window.bpHook = function(event, value) {
                 bpTrackProgress('play_run', 1);
                 break;
             case 'new_record':
-                bpTrackProgress('beat_record', 1);
+                /* квесты на рекорд удалены */
                 break;
         }
     } catch (e) { /* пропуск не должен ронять игру */ }
@@ -3704,20 +3850,46 @@ async function bpBuyPremiumMacrame() {
 }
 
 // ── UI ──
+let bpQuestTimerInt = null;
+function bpStartQuestTimer() {
+    bpStopQuestTimer();
+    const tick = async () => {
+        const el = document.getElementById('bpQuestTimerVal');
+        if (!el) return;
+        const left = (bpState.next_quest_at || 0) - Date.now();
+        if (left <= 0) {
+            el.textContent = 'обновляю…';
+            await bpEnsurePeriodicQuests();
+            bpRender();
+            return;
+        }
+        const h = Math.floor(left / 3600000);
+        const m = Math.floor((left % 3600000) / 60000);
+        const s = Math.floor((left % 60000) / 1000);
+        el.textContent = (h > 0 ? `${h}ч ` : '') + `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    };
+    tick();
+    bpQuestTimerInt = setInterval(tick, 1000);
+}
+function bpStopQuestTimer() {
+    if (bpQuestTimerInt) { clearInterval(bpQuestTimerInt); bpQuestTimerInt = null; }
+}
 function openBattlePass() {
     document.getElementById('menu').style.display = 'none';
     document.getElementById('bpModal').classList.add('open');
-    bpInit().then(() => bpRender());
+    bpInit().then(() => { bpRender(); if (bpCurrentTab === 'quests') bpStartQuestTimer(); });
 }
 function closeBattlePass() {
     document.getElementById('bpModal').classList.remove('open');
     document.getElementById('menu').style.display = 'flex';
+    bpStopQuestTimer();
 }
 function bpSwitchTab(tab) {
     bpCurrentTab = tab;
     document.getElementById('bpTabRewards').classList.toggle('active', tab==='rewards');
     document.getElementById('bpTabQuests').classList.toggle('active', tab==='quests');
     bpRender();
+    if (tab === 'quests') bpStartQuestTimer(); else bpStopQuestTimer();
 }
 
 function bpRender() {
@@ -3789,7 +3961,7 @@ function bpRender() {
             html += `<div style="text-align:center;color:var(--text-muted);padding:24px;">Нет квестов</div>`;
         } else {
             const sorted = bpQuests.slice().sort((a,b) => {
-                const order = { easy:0, medium:1, hard:2 };
+                const order = { weekly:-1, easy:0, medium:1, hard:2 };
                 return order[a.difficulty] - order[b.difficulty];
             });
             sorted.forEach(q => {
@@ -3799,19 +3971,23 @@ function bpRender() {
                     : (q.completed
                         ? `<button class="bp-q-action ready" onclick="bpClaimQuest(${q.id})">+${q.reward_tokens} 🎟</button>`
                         : `<button class="bp-q-action" disabled>${q.progress}/${q.goal}</button>`);
+                const isWeekly = q.difficulty === 'weekly';
+                const metaExtra = isWeekly && q.expires_at
+                    ? ` · до ${new Date(q.expires_at).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})}`
+                    : '';
                 html += `
-                    <div class="bp-quest">
+                    <div class="bp-quest ${isWeekly ? 'weekly' : ''}">
                         <div class="bp-q-diff ${q.difficulty}"></div>
                         <div class="bp-q-info">
                             <div class="bp-q-title">${q.title}</div>
                             <div class="bp-q-bar"><div class="bp-q-fill" style="width:${pct}%"></div></div>
-                            <div class="bp-q-meta">${q.difficulty.toUpperCase()} · награда ${q.reward_tokens} 🎟</div>
+                            <div class="bp-q-meta">${(isWeekly?'НЕДЕЛЬНЫЙ':q.difficulty.toUpperCase())} · награда ${q.reward_tokens} 🎟${metaExtra}</div>
                         </div>
                         ${btn}
                     </div>`;
             });
-            html += `<div style="text-align:center;color:var(--text-dim);font-size:10px;margin-top:14px;">
-                Новые квесты появятся завтра
+            html += `<div class="bp-quest-timer" id="bpQuestTimer">
+                ⏳ Новые квесты через <b id="bpQuestTimerVal">…</b>
             </div>`;
         }
     }
