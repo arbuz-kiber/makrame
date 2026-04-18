@@ -1311,7 +1311,9 @@ const ENEMY_SKINS = {
 
 const PLAYER_SKINS = {
     "default": { name: "Стандарт", img: "игрок.jpg", price: 0 },
-    "skin67":  { name: "Скин 67",  img: "67.png",    price: 6700 }
+    "skin67":  { name: "Скин 67",  img: "67.png",    price: 6700 },
+    // Эксклюзивный скин — выдаётся ТОЛЬКО админом. price:null + exclusive => не виден в магазине.
+    "los_parochka": { name: "Лос Парочка", img: "лос парочка.jpg", price: null, exclusive: true }
 };
 
 function isBoostActive() { return boostUntil && new Date(boostUntil) > new Date(); }
