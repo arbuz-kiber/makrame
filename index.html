@@ -2029,12 +2029,24 @@ const playerImg = new Image(); playerImg.src = "игрок.jpg";
 const enemyImg = new Image(); 
 
 function spawnPoint() {
-    const r = Math.random(); let type = "common";
-    if (r > 0.998) type = "combo";
-    else if (r > 0.993) type = "magnet";
-    else if (r > 0.985) type = "shield"; else if (r > 0.96) type = "green";
-    else if (r > 0.92) type = "yellow"; else if (r > 0.86) type = "epic"; else if (r > 0.76) type = "rare";
-    points.push({ x: Math.random() * (canvas.width - 50) + 25, y: Math.random() * (canvas.height - 50) + 25, r: canvas.width * (type === "combo" ? 0.033 : (type === "magnet" ? 0.03 : 0.025)), type });
+    const r = Math.random();
+    let type = "common";
+
+    if (r > 0.998) type = "combo";        // 0.2%
+    else if (r > 0.993) type = "magnet";  // 0.5%
+    else if (r > 0.985) type = "shield";  // 0.8%
+    else if (r > 0.96) type = "green";    // 2.5%
+    else if (r > 0.90) type = "yellow";   // ✅ 6%
+    else if (r > 0.75) type = "rare";     // ✅ 15% (синий)
+    else if (r > 0.65) type = "epic";     // 10%
+    else type = "common";                 // остальное (65%)
+    
+    points.push({
+        x: Math.random() * (canvas.width - 50) + 25,
+        y: Math.random() * (canvas.height - 50) + 25,
+        r: canvas.width * (type === "combo" ? 0.033 : (type === "magnet" ? 0.03 : 0.025)),
+        type
+    });
 }
 
 function drawMacrameBall(ctx, cx, cy, r, color, isCombo) {
