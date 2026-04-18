@@ -2143,14 +2143,32 @@ function adminShowMsg(text, type = 'success') {
     el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
 
+function adminEscapeLike(s) { return s.replace(/[\\%_]/g, m => '\\' + m); }
+
 async function adminSearchPlayer() {
     const name = document.getElementById("adminSearchInput").value.trim();
     if (!name) return;
     const res = document.getElementById("adminPlayerResult");
     res.innerHTML = `<div class="admin-notice">Поиск...</div>`;
-    const { data: u } = await supabaseClient.from("leaderboard").select("*").ilike("name", name).maybeSingle();
-    if (!u) { res.innerHTML = `<div class="admin-notice">Игрок не найден</div>`; return; }
-    adminRenderPlayerProfile(u, res);
+    // 1) Точное совпадение (без учёта регистра)
+    let { data: exact } = await supabaseClient.from("leaderboard").select("*").ilike("name", name).limit(2);
+    if (exact && exact.length === 1) { adminRenderPlayerProfile(exact[0], res); return; }
+    // 2) Частичное совпадение
+    const pattern = `%${adminEscapeLike(name)}%`;
+    const { data: list } = await supabaseClient.from("leaderboard").select("*").ilike("name", pattern).limit(20);
+    if (!list || list.length === 0) { res.innerHTML = `<div class="admin-notice">Игрок не найден</div>`; return; }
+    if (list.length === 1) { adminRenderPlayerProfile(list[0], res); return; }
+    // Несколько совпадений — показать список
+    res.innerHTML = `<div class="admin-notice">Найдено ${list.length}. Выберите:</div>` +
+        list.map(p => `<div class="admin-player-card" style="cursor:pointer; padding:10px; margin-bottom:6px;" onclick="adminPickSearchResult('${(p.name||'').replace(/'/g,"\\'")}')">
+            <div style="font-weight:700; color:#e879f9;">${p.name}</div>
+            <div style="font-size:10px; color:var(--text-dim);">🧶 ${p.macrame_points||0} · ⚡ ${p.boosters_count||0} · 🏆 ${p.score||0}</div>
+        </div>`).join('');
+}
+
+function adminPickSearchResult(name) {
+    document.getElementById("adminSearchInput").value = name;
+    adminSearchPlayer();
 }
 
 function adminRenderPlayerProfile(u, container) {
@@ -2321,7 +2339,21 @@ function adminRenderAllList(players) {
 async function adminLoadGiveTarget() {
     const name = document.getElementById("adminGiveTarget").value.trim();
     if (!name) return;
-    const { data: u } = await supabaseClient.from("leaderboard").select("*").ilike("name", name).maybeSingle();
+    // 1) Точное (case-insensitive)
+    let { data: exact } = await supabaseClient.from("leaderboard").select("*").ilike("name", name).limit(2);
+    let u = (exact && exact.length === 1) ? exact[0] : null;
+    if (!u) {
+        // 2) Частичное
+        const pattern = `%${adminEscapeLike(name)}%`;
+        const { data: list } = await supabaseClient.from("leaderboard").select("*").ilike("name", pattern).limit(2);
+        if (list && list.length === 1) u = list[0];
+        else if (list && list.length > 1) {
+            adminShowMsg(`Найдено ${list.length} совпадений — уточните ник`, "error");
+            adminCurrentTarget = null;
+            document.getElementById("adminGiveTargetInfo").textContent = "";
+            return;
+        }
+    }
     if (!u) { adminShowMsg("Игрок не найден", "error"); adminCurrentTarget = null; document.getElementById("adminGiveTargetInfo").textContent = ""; return; }
     adminCurrentTarget = u;
     document.getElementById("adminGiveTargetInfo").innerHTML = 
