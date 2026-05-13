@@ -75,6 +75,31 @@
             from { box-shadow: 0 0 8px rgba(255,80,80,0.18); }
             to   { box-shadow: 0 0 24px rgba(255,80,80,0.45); border-color: rgba(255,107,107,0.5); }
         }
+
+        /* ── FPS HUD ── */
+        #fpsHud {
+            position: fixed; bottom: 14px; left: 14px; z-index: 2;
+            display: none; align-items: center; gap: 6px;
+            font-family: 'JetBrains Mono','Unbounded',monospace;
+            font-size: 11px; font-weight: 700;
+            color: #a7f3d0;
+            background: rgba(6,6,14,0.7);
+            padding: 5px 11px; border-radius: 50px;
+            border: 1px solid rgba(167,243,208,0.18);
+            backdrop-filter: blur(12px);
+            letter-spacing: 0.4px;
+            pointer-events: none;
+            font-variant-numeric: tabular-nums;
+        }
+        #fpsHud.show { display: inline-flex; }
+        #fpsHud.warn { color: #fde68a; border-color: rgba(253,230,138,0.25); }
+        #fpsHud.bad  { color: #fca5a5; border-color: rgba(252,165,165,0.3); }
+        .fps-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 6px currentColor;
+        }
+
         #freezeOverlay {
             position: fixed; inset: 0; display: flex;
             justify-content: center; align-items: center;
@@ -95,6 +120,83 @@
             gap: 12px; z-index: 10; padding: 16px;
             animation: ovFadeIn 0.5s var(--ease-out-expo);
             overflow-y: auto; touch-action: pan-y;
+        }
+
+        /* ── SETTINGS ROW / SWITCH ── */
+        .setting-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 14px; padding: 14px 14px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            transition: all 0.25s var(--ease-spring);
+        }
+        .setting-row:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+        .setting-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+        .setting-hint { font-size: 10px; font-weight: 500; color: var(--text-dim); letter-spacing: 0.2px; }
+
+        .switch { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; cursor: pointer; }
+        .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .switch-track {
+            position: absolute; inset: 0; border-radius: 50px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.25s var(--ease-spring);
+        }
+        .switch-thumb {
+            position: absolute; top: 2px; left: 2px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: linear-gradient(180deg, #fff, #d4d4dc);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.06);
+            transition: all 0.28s var(--ease-spring);
+        }
+        .switch input:checked + .switch-track {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            border-color: rgba(167,139,250,0.5);
+            box-shadow: 0 0 14px rgba(139,92,246,0.35);
+        }
+        .switch input:checked + .switch-track .switch-thumb {
+            left: 20px;
+            background: linear-gradient(180deg, #fff, #ede9fe);
+        }
+        .switch:active .switch-thumb { width: 24px; }
+
+        /* ── HERO STATS PANEL (menu) ── */
+        .hero-stats {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px; margin: 14px 0 16px;
+            animation: staggerUp 0.6s var(--ease-out-expo) 0.18s both;
+        }
+        .hero-stat {
+            position: relative;
+            background: linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 10px 6px 9px;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hero-stat::before {
+            content: ''; position: absolute; top: 0; left: 12px; right: 12px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--hs-c, rgba(167,139,250,0.45)), transparent);
+        }
+        .hero-stat .hs-icon {
+            font-size: 16px; line-height: 1; margin-bottom: 4px; display: block;
+            filter: drop-shadow(0 0 8px var(--hs-c, rgba(167,139,250,0.4)));
+        }
+        .hero-stat .hs-value {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 15px; font-weight: 900;
+            color: var(--text);
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .hero-stat .hs-label {
+            font-size: 8px; font-weight: 800; color: var(--text-dim);
+            letter-spacing: 1.5px; text-transform: uppercase;
+            margin-top: 2px;
         }
 
         @keyframes ovFadeIn {
@@ -1273,6 +1375,7 @@
     </span>
 </div>
 <div id="magnetStatus">🧲 <span id="magnetFrames">0</span></div>
+<div id="fpsHud"><span class="fps-dot"></span><span id="fpsValue">60</span> FPS</div>
 <div id="freezeOverlay">🥶</div>
 
 <div id="menu" class="overlay">
@@ -1314,6 +1417,24 @@
                     <span class="welcome-name" id="welcomeText"></span>
                 </div>
                 <button class="btn-logout" onclick="logout()">Выйти</button>
+            </div>
+
+            <div class="hero-stats">
+                <div class="hero-stat" style="--hs-c: rgba(251,191,36,0.55);">
+                    <span class="hs-icon">🏆</span>
+                    <div class="hs-value" id="heroStatBest">0</div>
+                    <div class="hs-label">Рекорд</div>
+                </div>
+                <div class="hero-stat" style="--hs-c: rgba(167,139,250,0.55);">
+                    <span class="hs-icon">🎮</span>
+                    <div class="hs-value" id="heroStatRuns">0</div>
+                    <div class="hs-label">Забегов</div>
+                </div>
+                <div class="hero-stat" style="--hs-c: rgba(52,211,153,0.55);">
+                    <span class="hs-icon">🧶</span>
+                    <div class="hs-value" id="heroStatTotal">0</div>
+                    <div class="hs-label">Собрано</div>
+                </div>
             </div>
 
             <button onclick="startGame()" class="btn-play">▶&nbsp;&nbsp;ИГРАТЬ</button>
@@ -1435,6 +1556,17 @@
                     <span id="volumeValue" style="font-weight:800; font-size:13px; color:#c084fc; font-family:'Unbounded',sans-serif;">100%</span>
                 </div>
                 <input type="range" id="volumeSlider" min="0" max="100" value="100" style="width:100%; accent-color:#8b5cf6; height:6px;">
+            </div>
+
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">📊 Показывать FPS</div>
+                    <div class="setting-hint">Счётчик кадров в углу во время игры</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="fpsToggle" onchange="setFpsHudEnabled(this.checked)">
+                    <span class="switch-track"><span class="switch-thumb"></span></span>
+                </label>
             </div>
         </div>
         <button onclick="closeOverlay('settings')" class="btn-back" style="margin-top:12px;">← Назад</button>
@@ -1705,8 +1837,6 @@
 
 <canvas id="game"></canvas>
 
-<canvas id="game"></canvas>
-
 <script>
 const SB_URL = "https://ffmyynrwbggefxqtkpau.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmbXl5bnJ3YmdnZWZ4cXRrcGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NTU2NDksImV4cCI6MjA5MTQzMTY0OX0.Pb3KJl6edAA_k5Ce6JlWO0Y81T-XboLVcPlvdU-T3W0";
@@ -1822,7 +1952,7 @@ function loginSuccess(user, save = true) {
     document.getElementById("authSection").style.display = "none";
     document.getElementById("gameSection").style.display = "block";
     document.getElementById("welcomeText").innerText = playerName;
-    updateMacrameUI(); applyEnemySkin(); applyPlayerSkin();
+    updateMacrameUI(); applyEnemySkin(); applyPlayerSkin(); updateHeroStats();
     // Инициализируем пропуск (квесты на сегодня + прогресс) сразу после входа
     if (typeof bpInit === 'function') bpInit().catch(()=>{});
 }
@@ -1859,7 +1989,26 @@ function openSettings() {
     document.getElementById("menu").style.display = "none";
     document.getElementById("volumeSlider").value = Math.round(musicVolume * 100);
     document.getElementById("volumeValue").innerText = Math.round(musicVolume * 100) + "%";
+    try {
+        const on = localStorage.getItem('showFps') === '1';
+        const t = document.getElementById('fpsToggle');
+        if (t) t.checked = on;
+    } catch(e){}
 }
+
+// ── Hero stats panel (best score / runs / total collected) ──
+function updateHeroStats() {
+    try {
+        const best = parseInt(localStorage.getItem('bestScore') || '0') || 0;
+        let runs = parseInt(localStorage.getItem('totalRuns') || '0') || 0;
+        let collected = parseInt(localStorage.getItem('totalCollected') || '0') || 0;
+        const fmt = (n) => n >= 1000 ? (n/1000).toFixed(n>=10000?0:1) + 'k' : n;
+        const b = document.getElementById('heroStatBest'); if (b) b.innerText = fmt(best);
+        const r = document.getElementById('heroStatRuns'); if (r) r.innerText = fmt(runs);
+        const c = document.getElementById('heroStatTotal'); if (c) c.innerText = fmt(collected);
+    } catch(e){}
+}
+document.addEventListener('DOMContentLoaded', updateHeroStats);
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("volumeSlider").addEventListener("input", (e) => {
         musicVolume = e.target.value / 100;
@@ -2019,7 +2168,7 @@ async function initOnline() {
 }
 
 // GAME ENGINE
-const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
+const canvas = document.getElementById("game"), ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
 let score = 0, running = false, slowTimer = 0, points = [], shieldCount = 0, enemyFreezeTimer = 0;
 let comboMultiplier = 1, comboTimer = 0; // x2 orb combo system
 let magnetTimer = 0; // magnet bonus timer
@@ -2049,127 +2198,85 @@ function spawnPoint() {
     });
 }
 
+// ⚡ ULTRA-FAST flat ball renderer — no per-frame canvas/getImageData/gradients.
+// Это сильно бустит FPS на слабых телефонах. Графика проще — игра плавнее.
 function drawMacrameBall(ctx, cx, cy, r, color, isCombo) {
-    ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.clip();
-
-    let baseClr = color;
+    let fill = color;
     if (isCombo) {
-        const hue = (Date.now() / 300 * 60) % 360;
-        baseClr = `hsl(${hue},80%,55%)`;
+        // Cheap rainbow without HSL parsing on every ball
+        const hue = ((Date.now() * 0.2) | 0) % 360;
+        fill = `hsl(${hue},85%,58%)`;
     }
+    // Flat disc — single arc + fill, by far the fastest path
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
 
-    if (ballRealism <= 0) {
-        // Simple flat circle (like game.html)
-        ctx.fillStyle = baseClr;
-        ctx.fillRect(cx - r, cy - r, r*2, r*2);
-    } else {
-        // Parse color
-        const tempC = document.createElement('canvas'); const tc = tempC.getContext('2d');
-        tc.fillStyle = baseClr; tc.fillRect(0,0,1,1);
-        const [rr,gg,bb] = tc.getImageData(0,0,1,1).data;
-        const lighter = `rgb(${Math.min(255,rr+70)},${Math.min(255,gg+70)},${Math.min(255,bb+70)})`;
-        const darker = `rgb(${Math.max(0,rr-50)},${Math.max(0,gg-50)},${Math.max(0,bb-50)})`;
-        const mid = `rgb(${Math.min(255,rr+20)},${Math.min(255,gg+20)},${Math.min(255,bb+20)})`;
+    // Tiny static highlight to keep some depth (no gradient!)
+    ctx.beginPath();
+    ctx.arc(cx - r * 0.32, cy - r * 0.32, r * 0.28, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fill();
 
-        // 3D sphere base
-        const grad = ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.05, cx + r*0.1, cy + r*0.1, r*1.1);
-        grad.addColorStop(0, lighter);
-        grad.addColorStop(0.4, baseClr);
-        grad.addColorStop(1, darker);
-        ctx.fillStyle = grad;
-        ctx.fillRect(cx - r, cy - r, r*2, r*2);
-
-        // Yarn wrap layers — scaled by realism
-        const allAngles = [0, Math.PI/3, -Math.PI/4, Math.PI/6, -Math.PI/6, Math.PI/2.5];
-        const anglesToUse = Math.max(1, Math.round(allAngles.length * ballRealism));
-        const angles = allAngles.slice(0, anglesToUse);
-        const threadW = Math.max(1.2, r * 0.09);
-
-        for (let a = 0; a < angles.length; a++) {
-            const angle = angles[a];
-            const cos = Math.cos(angle), sin = Math.sin(angle);
-            const count = Math.max(2, Math.floor(r * 0.55 * ballRealism));
-            for (let i = -count; i <= count; i++) {
-                const t = i / count;
-                const yOff = t * r;
-                const xSpan = Math.sqrt(Math.max(0, r*r - yOff*yOff));
-                if (xSpan < r * 0.15) continue;
-                const x1 = cx + (-xSpan) * cos - yOff * sin;
-                const y1 = cy + (-xSpan) * sin + yOff * cos;
-                const x2 = cx + (xSpan) * cos - yOff * sin;
-                const y2 = cy + (xSpan) * sin + yOff * cos;
-                const bulge = (1 - t*t) * r * 0.12;
-                const cpx = cx + bulge * sin;
-                const cpy = cy - bulge * cos;
-                const depth = 1 - Math.abs(t);
-                ctx.globalAlpha = 0.15 + depth * 0.35;
-                ctx.beginPath();
-                ctx.strokeStyle = a % 3 === 0 ? lighter : a % 3 === 1 ? mid : baseClr;
-                ctx.lineWidth = threadW * (0.6 + depth * 0.4);
-                ctx.moveTo(x1, y1);
-                ctx.quadraticCurveTo(cpx, cpy, x2, y2);
-                ctx.stroke();
-            }
-        }
-
-        // Fuzzy fibers scaled by realism
-        const fiberCount = Math.round(40 * ballRealism);
-        ctx.globalAlpha = 0.06;
-        for (let i = 0; i < fiberCount; i++) {
-            const fx = cx + (Math.random() - 0.5) * r * 1.8;
-            const fy = cy + (Math.random() - 0.5) * r * 1.8;
-            if (Math.hypot(fx-cx, fy-cy) > r) continue;
-            ctx.beginPath();
-            ctx.strokeStyle = lighter;
-            ctx.lineWidth = 0.5;
-            const fa = Math.random() * Math.PI * 2;
-            const fl = r * 0.15;
-            ctx.moveTo(fx, fy);
-            ctx.lineTo(fx + Math.cos(fa)*fl, fy + Math.sin(fa)*fl);
-            ctx.stroke();
-        }
-    }
-
-    ctx.globalAlpha = 1;
-
-    // Specular highlight
-    const spec = ctx.createRadialGradient(cx - r*0.32, cy - r*0.32, r*0.02, cx - r*0.15, cy - r*0.15, r*0.55);
-    spec.addColorStop(0, 'rgba(255,255,255,0.5)');
-    spec.addColorStop(0.5, 'rgba(255,255,255,0.12)');
-    spec.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = spec;
-    ctx.fillRect(cx - r, cy - r, r*2, r*2);
-
-    // Subtle ambient shadow at bottom
-    const amb = ctx.createRadialGradient(cx, cy + r*0.6, r*0.1, cx, cy + r*0.3, r);
-    amb.addColorStop(0, 'rgba(0,0,0,0.15)');
-    amb.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = amb;
-    ctx.fillRect(cx - r, cy - r, r*2, r*2);
-
-    ctx.restore();
-
-    // Combo glow outside clip
     if (isCombo) {
-        const hue = (Date.now() / 300 * 60) % 360;
-        ctx.save();
-        ctx.shadowBlur = 18; ctx.shadowColor = `hsl(${hue},100%,60%)`;
-        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-        ctx.strokeStyle = `hsla(${hue},100%,60%,0.4)`; ctx.lineWidth = 2; ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.restore();
+        // Single thin outline for combo orbs (no shadowBlur — that's expensive)
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 1, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
     }
 }
 
-function update() {
+let _lastFrameT = 0;
+let _fpsAccum = 0, _fpsFrames = 0, _fpsLastTick = 0;
+function setFpsHudEnabled(on) {
+    const el = document.getElementById('fpsHud');
+    if (!el) return;
+    el.classList.toggle('show', !!on);
+    try { localStorage.setItem('showFps', on ? '1' : '0'); } catch(e){}
+}
+// Restore saved preference (default off)
+try {
+    const saved = localStorage.getItem('showFps') === '1';
+    document.addEventListener('DOMContentLoaded', () => setFpsHudEnabled(saved));
+    // Also try immediately in case DOM is already parsed
+    queueMicrotask(() => setFpsHudEnabled(saved));
+} catch(e){}
+function update(now) {
     if (!running) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Frame-rate independent gameplay (60fps reference)
+    if (!_lastFrameT) _lastFrameT = now || performance.now();
+    const _t = now || performance.now();
+    let dt = (_t - _lastFrameT) / 16.6667;
+    _lastFrameT = _t;
+    if (!isFinite(dt) || dt <= 0) dt = 1;
+    if (dt > 3) dt = 3; // cap big spikes (tab switch, lag)
+
+    // FPS metric (smoothed) — updated 4x/sec
+    _fpsAccum += dt;
+    _fpsFrames++;
+    if (_t - _fpsLastTick > 250) {
+        const avgDt = _fpsAccum / _fpsFrames;
+        const fps = Math.round(60 / avgDt);
+        const el = document.getElementById('fpsHud');
+        if (el && el.classList.contains('show')) {
+            document.getElementById('fpsValue').innerText = fps;
+            el.classList.toggle('warn', fps < 50 && fps >= 30);
+            el.classList.toggle('bad',  fps < 30);
+        }
+        _fpsAccum = 0; _fpsFrames = 0; _fpsLastTick = _t;
+    }
+
+    // alpha:false canvas — must paint background, not clear
+    ctx.fillStyle = '#06060e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     let speed = (slowTimer > 0) ? 1.5 : (2 + score * 0.1);
-    if (slowTimer > 0) { slowTimer--; document.getElementById("slowStatus").style.display = "block"; document.getElementById("slowFrames").innerText = slowTimer; } 
+    if (slowTimer > 0) { slowTimer -= dt; if (slowTimer < 0) slowTimer = 0; document.getElementById("slowStatus").style.display = "block"; document.getElementById("slowFrames").innerText = Math.ceil(slowTimer); }
     else { document.getElementById("slowStatus").style.display = "none"; }
-    if (enemyFreezeTimer > 0) { enemyFreezeTimer--; } 
-    else { let dx = player.x - enemy.x, dy = player.y - enemy.y, dist = Math.hypot(dx, dy); if (dist > 1) { enemy.x += (dx / dist) * speed; enemy.y += (dy / dist) * speed; } }
+    if (enemyFreezeTimer > 0) { enemyFreezeTimer -= dt; if (enemyFreezeTimer < 0) enemyFreezeTimer = 0; }
+    else { let dx = player.x - enemy.x, dy = player.y - enemy.y, dist = Math.hypot(dx, dy); if (dist > 1) { enemy.x += (dx / dist) * speed * dt; enemy.y += (dy / dist) * speed * dt; } }
     // Combo timer tick
     if (comboTimer > 0) {
         comboTimer--;
@@ -2185,7 +2292,7 @@ function update() {
             if (p.type === "magnet") return; // don't attract the magnet ball itself
             const dx = player.x - p.x, dy = player.y - p.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 1) { const pull = Math.min(8, 200 / dist); p.x += (dx / dist) * pull; p.y += (dy / dist) * pull; }
+            if (dist > 1) { const pull = Math.min(8, 200 / dist) * dt; p.x += (dx / dist) * pull; p.y += (dy / dist) * pull; }
         });
         if (magnetTimer === 0) { document.getElementById("magnetStatus").style.display = "none"; }
     }
@@ -2382,6 +2489,7 @@ function closeEditVideo() {
     try { video.pause(); } catch(e){}
     overlay.classList.remove('active');
     if (overlay._wasRunning) {
+        _lastFrameT = 0;
         running = true;
         update();
     }
@@ -2713,7 +2821,8 @@ function startGame() {
     document.getElementById("menu").style.display = "none"; score = 0; points = []; slowTimer = 0; enemy.x = -200; shieldCount = 0; enemyFreezeTimer = 0;
     comboMultiplier = 1; comboTimer = 0; magnetTimer = 0;
     document.getElementById("score").innerHTML = "Очки: 0" + (isBoostActive() ? " <span style='color:#f59e0b'>✦x2</span>" : "");
-    for (let i = 0; i < 6; i++) spawnPoint(); running = true; update();
+    for (let i = 0; i < 6; i++) spawnPoint(); _lastFrameT = 0; running = true; update();
+    try { localStorage.setItem('totalRuns', String((parseInt(localStorage.getItem('totalRuns')||'0')||0) + 1)); } catch(e){}
 }
 
 function gameOver() { 
@@ -2721,9 +2830,11 @@ function gameOver() {
     if (score > bestScore) { bestScore = score; localStorage.setItem('bestScore', bestScore); bpHook('new_record', 1); }
     bpHook('game_over_score', score);
     if (gameStartTime) bpHook('survive_seconds', Math.floor((Date.now() - gameStartTime) / 1000));
+    try { localStorage.setItem('totalCollected', String((parseInt(localStorage.getItem('totalCollected')||'0')||0) + (score|0))); } catch(e){}
+    updateHeroStats();
     saveResults(score); document.getElementById("finalScore").innerText = score; document.getElementById("gameOver").style.display = "flex"; 
 }
-function backToMenu() { document.getElementById("gameOver").style.display = "none"; document.getElementById("menu").style.display = "flex"; }
+function backToMenu() { document.getElementById("gameOver").style.display = "none"; document.getElementById("menu").style.display = "flex"; updateHeroStats(); }
 function restart() { document.getElementById("gameOver").style.display = "none"; startGame(); }
 
 window.addEventListener("resize", () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.r = Math.min(canvas.width, canvas.height) * 0.06; enemy.r = player.r; });
