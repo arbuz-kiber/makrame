@@ -1348,6 +1348,134 @@
         }
         #editVideoClose:hover { background: rgba(255,255,255,0.2); }
 
+        /* ── CASES (RNG box opening) ── */
+        :root {
+            --case-r-common:    #9ca3af;
+            --case-r-rare:      #3b82f6;
+            --case-r-epic:      #a855f7;
+            --case-r-mythic:    #ef4444;
+            --case-r-legendary: #fbbf24;
+            --ease-reel: cubic-bezier(.07,.66,.13,1);
+        }
+        .case-cards { display:grid; grid-template-columns:1fr; gap:10px; }
+        .case-card {
+            display:flex; align-items:center; gap:12px; padding:14px;
+            border-radius:16px; border:1px solid var(--card-border);
+            background:rgba(255,255,255,0.03); position:relative; overflow:hidden;
+        }
+        .case-card::before {
+            content:''; position:absolute; inset:0; opacity:.18; pointer-events:none;
+            background: radial-gradient(circle at 0% 50%, var(--cc, #888), transparent 60%);
+        }
+        .case-card.common    { --cc: var(--case-r-common); }
+        .case-card.epic      { --cc: var(--case-r-epic); }
+        .case-card.legendary { --cc: var(--case-r-legendary); }
+        .case-icon {
+            width:56px; height:56px; border-radius:14px; display:grid; place-items:center;
+            font-size:32px; flex-shrink:0; position:relative; z-index:1;
+            background: linear-gradient(135deg, color-mix(in oklab, var(--cc) 30%, transparent), color-mix(in oklab, var(--cc) 8%, transparent));
+            border:1px solid color-mix(in oklab, var(--cc) 40%, transparent);
+        }
+        .case-info { flex:1; min-width:0; position:relative; z-index:1; }
+        .case-name { font-family:'Unbounded',sans-serif; font-weight:800; font-size:13px; letter-spacing:-.3px; color:var(--text); }
+        .case-count { font-size:11px; color:var(--text-muted); font-weight:700; margin-top:2px; }
+        .case-count b { color: var(--cc); font-family:'Unbounded',sans-serif; }
+        .case-open-btn {
+            position:relative; z-index:1;
+            padding:10px 14px; border-radius:50px; border:1px solid color-mix(in oklab, var(--cc) 40%, transparent);
+            background: color-mix(in oklab, var(--cc) 20%, transparent);
+            color:#fff; font-family:'Unbounded',sans-serif; font-weight:800; font-size:11px; letter-spacing:1.2px;
+            cursor:pointer; transition:transform .15s;
+        }
+        .case-open-btn:active { transform:scale(.96); }
+        .case-open-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+        /* Opening overlay */
+        #caseOpen {
+            position:fixed; inset:0; z-index:100; display:none;
+            background: rgba(6,6,14,0.94); backdrop-filter:blur(20px);
+            align-items:center; justify-content:center; padding:20px;
+        }
+        #caseOpen.open { display:flex; }
+        .case-open-card {
+            width:100%; max-width:420px; background:rgba(255,255,255,0.03);
+            border:1px solid var(--card-border); border-radius:24px; padding:18px;
+            display:flex; flex-direction:column; gap:14px;
+        }
+        .reel-wrap {
+            position:relative; height:120px; overflow:hidden; border-radius:18px;
+            border:1px solid var(--card-border); background:rgba(0,0,0,.4);
+            --rc: var(--primary);
+        }
+        .reel-wrap::before, .reel-wrap::after {
+            content:''; position:absolute; top:0; bottom:0; width:60px; z-index:3; pointer-events:none;
+        }
+        .reel-wrap::before { left:0; background:linear-gradient(90deg,#06060e,transparent); }
+        .reel-wrap::after { right:0; background:linear-gradient(-90deg,#06060e,transparent); }
+        .reel { display:flex; height:100%; will-change:transform; transition:transform 5.6s var(--ease-reel); }
+        .reel-item {
+            flex:0 0 100px; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+            border-right:1px solid rgba(255,255,255,0.04);
+        }
+        .reel-item .em { font-size:38px; line-height:1; }
+        .reel-item .nm { font-size:9px; font-weight:800; color:var(--text-muted); margin-top:2px; text-align:center; max-width:90px; line-height:1.1; }
+        .reel-marker {
+            position:absolute; top:0; bottom:0; left:50%; width:3px; transform:translateX(-50%);
+            background:#fff; box-shadow:0 0 18px var(--primary), 0 0 4px #fff; z-index:4; border-radius:3px;
+        }
+        .case-result {
+            display:none; flex-direction:column; align-items:center; gap:6px;
+            padding:18px; border-radius:18px; text-align:center;
+            background: radial-gradient(ellipse at center, color-mix(in oklab, var(--rc, var(--primary)) 30%, transparent), rgba(0,0,0,.8));
+            border:1px solid color-mix(in oklab, var(--rc, var(--primary)) 50%, transparent);
+        }
+        .case-result.show { display:flex; animation: caseResultPop .65s var(--ease-spring); }
+        @keyframes caseResultPop {
+            0%   { transform:scale(.4); opacity:0; }
+            60%  { transform:scale(1.08); opacity:1; }
+            100% { transform:scale(1); opacity:1; }
+        }
+        .case-result .em { font-size:54px; line-height:1; }
+        .case-result .nm { font-family:'Unbounded',sans-serif; font-weight:800; font-size:14px; color:#fff; }
+        .case-result .rw { font-size:12px; color:#fde68a; font-weight:700; margin-top:2px; }
+        .case-result .rar {
+            font-family:'Unbounded',sans-serif; font-size:9px; letter-spacing:3px; font-weight:800;
+            color: var(--rc); padding:4px 10px; border-radius:50px;
+            background: color-mix(in oklab, var(--rc) 18%, transparent); margin-top:2px;
+        }
+        .clover-flash {
+            display:none; align-items:center; justify-content:center; gap:8px;
+            padding:10px 14px; border-radius:50px;
+            background:linear-gradient(135deg, rgba(16,185,129,.25), rgba(16,185,129,.08));
+            border:1px solid rgba(16,185,129,.4);
+            font-family:'Unbounded',sans-serif; font-weight:800; font-size:11px; letter-spacing:1px;
+            color:#6ee7b7; animation: cloverPulse 1s ease infinite;
+        }
+        .clover-flash.show { display:inline-flex; }
+        @keyframes cloverPulse { 50% { transform:scale(1.05); box-shadow:0 0 24px rgba(16,185,129,.5); } }
+        #caseCloseBtn {
+            width:100%; padding:13px; border-radius:14px; border:1px solid var(--card-border);
+            background:rgba(255,255,255,.04); color:var(--text); cursor:pointer;
+            font-family:'Unbounded',sans-serif; font-weight:800; font-size:12px; letter-spacing:1px;
+        }
+        #caseCloseBtn:disabled { opacity:.4; cursor:not-allowed; }
+
+        /* Toast при подборе кейса в игре */
+        .case-drop-toast {
+            position:fixed; top:60px; left:50%; transform:translateX(-50%) translateY(-20px);
+            padding:10px 16px; border-radius:50px;
+            background:rgba(6,6,14,.92); border:1px solid var(--card-border);
+            font-family:'Unbounded',sans-serif; font-weight:800; font-size:12px; letter-spacing:.5px;
+            color:#fff; z-index:50; opacity:0;
+            transition: opacity .3s, transform .35s var(--ease-spring);
+            pointer-events:none;
+        }
+        .case-drop-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        /* Рамки из кейсов (визуал для профиля) */
+        .frame-cosmos      { box-shadow: 0 0 0 3px #0b1340, 0 0 24px #4f46e5, 0 0 48px #a78bfa; }
+        .frame-dark-matter { box-shadow: 0 0 0 3px #1a0a26, 0 0 28px #6b21a8, inset 0 0 30px rgba(0,0,0,.7); }
+
     </style>
 </head>
 <body>
@@ -1487,6 +1615,7 @@
             <button id="tabEnemy" class="tab-btn active" onclick="renderShop('enemy')">Враг</button>
             <button id="tabPlayer" class="tab-btn" onclick="renderShop('player')">Игрок</button>
             <button id="tabBoosts" class="tab-btn" onclick="renderShop('boosts')">Бустеры</button>
+            <button id="tabCases"  class="tab-btn" onclick="renderShop('cases')">Кейсы</button>
         </div>
         <div id="shopList" style="overflow-y:auto; max-height: 52vh;"></div>
         <button onclick="closeOverlay('shop')" class="btn-back" style="margin-top:12px;">← Назад</button>
@@ -1841,6 +1970,25 @@
 
 <canvas id="game"></canvas>
 
+<!-- ── CASE OPENING OVERLAY ── -->
+<div id="caseOpen">
+    <div class="case-open-card">
+        <h2 class="inner-title" id="caseOpenTitle" style="text-align:center;">Открытие кейса</h2>
+        <div class="reel-wrap" id="caseReelWrap">
+            <div class="reel" id="caseReel"></div>
+            <div class="reel-marker"></div>
+        </div>
+        <div id="caseCloverFlash" class="clover-flash">🍀 КЛЕВЕР! Множитель <span id="caseCloverMult">x2</span></div>
+        <div class="case-result" id="caseResult">
+            <div class="rar" id="caseResRar"></div>
+            <div class="em" id="caseResEm">🎁</div>
+            <div class="nm" id="caseResNm"></div>
+            <div class="rw" id="caseResRw"></div>
+        </div>
+        <button id="caseCloseBtn" onclick="closeCaseOverlay()" disabled>Открывается…</button>
+    </div>
+</div>
+
 <script>
 const SB_URL = "https://ffmyynrwbggefxqtkpau.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmbXl5bnJ3YmdnZWZ4cXRrcGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NTU2NDksImV4cCI6MjA5MTQzMTY0OX0.Pb3KJl6edAA_k5Ce6JlWO0Y81T-XboLVcPlvdU-T3W0";
@@ -1852,7 +2000,9 @@ let unlockedTitles = [], unlockedEmojis = [], unlockedBadges = [], unlockedFrame
 let equippedTitle = null, equippedEmoji = null, equippedBadge = null, equippedFrame = null;
 let ownedSkins = ["natalia"], currentSkin = "natalia";
 let ownedPlayerSkins = ["default"], currentPlayerSkin = "default";
-let boostersCount = 0, boostUntil = null; 
+let boostersCount = 0, boostUntil = null;
+// ── Кейсы (RNG лутбоксы) ──
+let commonCases = 0, epicCases = 0, legendaryCases = 0;
 let currentAudio = null;
 let musicVolume = parseFloat(localStorage.getItem('setting_volume') ?? '1');
 let ballRealism = 0;
@@ -1862,14 +2012,19 @@ const ENEMY_SKINS = {
     "dmitro":  { name: "Дмитро",  img: "дмитро.jpg",  price: 1500, title: "Побег от Дмитра",  emoji: "🌍", refund: 800 },
     "budko":   { name: "Будко",   img: "будко.png",   price: 5000, title: "Побег от Оксаны",  emoji: "👺", refund: 2500 },
     // Эксклюзивный скин — выдаётся ТОЛЬКО за 30 уровень премиум-пропуска. price:null = недоступен в магазине.
-    "natalia_legendary": { name: "Мунтяну", img: "muntyanu.jpg", price: null, title: "Побег от Мунтяну", emoji: "👑", exclusive: true }
+    "natalia_legendary": { name: "Мунтяну", img: "muntyanu.jpg", price: null, title: "Побег от Мунтяну", emoji: "👑", exclusive: true },
+    // Скины из кейсов (только через кейсы — exclusive)
+    "alena_igorevna": { name: "Алёна Игоревна", img: "алёна-игоревна.png", price: null, title: "Побег от Алёны Игоревны", emoji: "🎨", exclusive: true },
+    "brudin":         { name: "Брудин",         img: "Брудин.png",          price: null, title: "Побег от Брудина",         emoji: "🌑", exclusive: true }
 };
 
 const PLAYER_SKINS = {
     "default": { name: "Стандарт", img: "игрок.jpg", price: 0 },
     "skin67":  { name: "Скин 67",  img: "67.png",    price: 6700 },
     // Эксклюзивный скин — выдаётся ТОЛЬКО админом. price:null + exclusive => не виден в магазине.
-    "los_parochka": { name: "Лос Парочка", img: "los_parochka.jpg", price: null, exclusive: true }
+    "los_parochka": { name: "Лос Парочка", img: "los_parochka.jpg", price: null, exclusive: true },
+    // Скин из эпического кейса
+    "plaksik": { name: "Плаксик", img: "плаксик.png", price: null, exclusive: true }
 };
 
 function isBoostActive() { return boostUntil && new Date(boostUntil) > new Date(); }
@@ -1941,6 +2096,9 @@ function loginSuccess(user, save = true) {
     ownedSkins = user.owned_skins || ["natalia"]; currentSkin = user.current_skin || "natalia";
     ownedPlayerSkins = user.owned_player_skins || ["default"]; currentPlayerSkin = user.current_player_skin || "default";
     boostersCount = user.boosters_count || 0; boostUntil = user.boost_until;
+    commonCases    = user.common_cases    || 0;
+    epicCases      = user.epic_cases      || 0;
+    legendaryCases = user.legendary_cases || 0;
     // Косметика пропуска
     unlockedTitles = user.unlocked_titles || [];
     unlockedEmojis = user.unlocked_emojis || [];
@@ -2060,6 +2218,7 @@ function renderShop(tab) {
     document.getElementById("tabEnemy").className  = tab === 'enemy'  ? 'tab-btn active' : 'tab-btn';
     document.getElementById("tabPlayer").className = tab === 'player' ? 'tab-btn active' : 'tab-btn';
     document.getElementById("tabBoosts").className = tab === 'boosts' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById("tabCases").className  = tab === 'cases'  ? 'tab-btn active' : 'tab-btn';
 
     if (tab === 'enemy') {
         // Рулетка
@@ -2103,7 +2262,7 @@ function renderShop(tab) {
                 </div>`;
         });
 
-    } else {
+    } else if (tab === 'boosts') {
         container.innerHTML = `
             <div class="shop-item">
                 <div class="shop-info">
@@ -2116,6 +2275,9 @@ function renderShop(tab) {
                 <div style="font-weight:800; color:var(--text-muted); font-size:13px; margin-bottom:10px;">В запасе: <span style="color:#c084fc;">${boostersCount} шт.</span></div>
                 <button onclick="activateBooster()" style="background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.4); color:#6ee7b7;" ${boostersCount === 0 ? 'disabled' : ''}>⚡ АКТИВИРОВАТЬ</button>
             </div>`;
+    } else {
+        // ── КЕЙСЫ ──
+        container.innerHTML = renderCasesTab();
     }
 }
 
@@ -2185,19 +2347,25 @@ function spawnPoint() {
     const r = Math.random();
     let type = "common";
 
-    if (r > 0.998) type = "combo";        // 0.2%
-    else if (r > 0.993) type = "magnet";  // 0.5%
-    else if (r > 0.985) type = "shield";  // 0.8%
-    else if (r > 0.96) type = "green";    // 2.5%
-    else if (r > 0.91) type = "yellow";   // ✅ 5%
-    else if (r > 0.78) type = "rare";     // ✅ 13% (синий)
-    else if (r > 0.68) type = "epic";     // 10%
-    else type = "common";                 // 68%
+    // ── Кейсы (реже комбо-шара) ──
+    // комбо = 0.2%. Обычный кейс x2 реже = 0.1%, эпик 0.05%, легенда 0.025%.
+    if      (r > 0.999) type = "case_legendary"; // 0.025%
+    else if (r > 0.997)  type = "case_epic";      // 0.05%
+    else if (r > 0.994)   type = "case_common";    // 0.1%
+    else if (r > 0.998)   type = "combo";          // 0.2%
+    else if (r > 0.993)   type = "magnet";         // 0.5%
+    else if (r > 0.985)   type = "shield";         // 0.8%
+    else if (r > 0.96)    type = "green";          // 2.5%
+    else if (r > 0.91)    type = "yellow";         // 5%
+    else if (r > 0.78)    type = "rare";           // 13%
+    else if (r > 0.68)    type = "epic";           // 10%
+    else                  type = "common";         // 68%
 
+    const isCase = type === "case_common" || type === "case_epic" || type === "case_legendary";
     points.push({
         x: Math.random() * (canvas.width - 50) + 25,
         y: Math.random() * (canvas.height - 50) + 25,
-        r: canvas.width * (type === "combo" ? 0.033 : (type === "magnet" ? 0.03 : 0.025)),
+        r: canvas.width * (isCase ? 0.036 : (type === "combo" ? 0.033 : (type === "magnet" ? 0.03 : 0.025))),
         type
     });
 }
@@ -2362,7 +2530,8 @@ function update(now) {
     }
 
     points.forEach((p, i) => {
-        const baseColor = p.type === "combo" ? null : p.type === "magnet" ? null : {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
+        const isCase = p.type === "case_common" || p.type === "case_epic" || p.type === "case_legendary";
+        const baseColor = p.type === "combo" ? null : p.type === "magnet" ? null : isCase ? null : {common:"#8B4513", rare:"#3b82f6", yellow:"#FFD700", epic:"#a855f7", green:"#10b981", shield:"#e5e7eb"}[p.type];
         if (p.type === "magnet") {
             // Draw magnet ball with red pulsing effect
             const t = Date.now() / 600;
@@ -2380,6 +2549,26 @@ function update(now) {
             ctx.fillStyle = "#fff"; ctx.font = `bold ${p.r * 0.8}px sans-serif`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText("🧲", p.x, p.y);
+            ctx.restore();
+        } else if (isCase) {
+            // Кейс — пульсирующий шар с короной по редкости
+            const caseCfg = {
+                case_common:    { color:"#9ca3af", glow:"rgba(156,163,175,",  emoji:"📦" },
+                case_epic:      { color:"#a855f7", glow:"rgba(168,85,247,",   emoji:"🎁" },
+                case_legendary: { color:"#fbbf24", glow:"rgba(251,191,36,",   emoji:"🏆" }
+            }[p.type];
+            const t = Date.now() / 500;
+            const pulse = 1 + Math.sin(t) * 0.10;
+            const pr = p.r * pulse;
+            ctx.save();
+            for (let ring = 3; ring >= 1; ring--) {
+                ctx.beginPath(); ctx.arc(p.x, p.y, pr + ring * 6, 0, Math.PI*2);
+                ctx.strokeStyle = caseCfg.glow + (0.08 * ring) + ")"; ctx.lineWidth = 2.5; ctx.stroke();
+            }
+            drawMacrameBall(ctx, p.x, p.y, pr, caseCfg.color, false);
+            ctx.fillStyle = "#fff"; ctx.font = `bold ${p.r * 0.85}px sans-serif`;
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(caseCfg.emoji, p.x, p.y);
             ctx.restore();
         } else {
             drawMacrameBall(ctx, p.x, p.y, p.r, baseColor, p.type === "combo");
@@ -2409,6 +2598,12 @@ function update(now) {
                 setTimeout(() => { el.style.transition = "all 0.5s"; el.style.transform = "scale(1.8)"; el.style.opacity = "0"; }, 50);
                 el.style.transition = "";
                 setTimeout(() => { el.innerText = "🥶"; }, 700);
+            } else if (p.type === "case_common" || p.type === "case_epic" || p.type === "case_legendary") {
+                // Сбор кейса — увеличиваем счётчик, сохраняем в БД, показываем тост
+                if (p.type === "case_common")    { commonCases++;    caseDropToast("📦 Обычный кейс!",    "#9ca3af"); }
+                if (p.type === "case_epic")      { epicCases++;      caseDropToast("🎁 Эпический кейс!",  "#a855f7"); }
+                if (p.type === "case_legendary") { legendaryCases++; caseDropToast("🏆 Легендарный кейс!", "#fbbf24"); }
+                saveCasesToDB();
             } else {
                 if (p.type === "rare" || p.type === "yellow") { slowTimer += p.type === "rare" ? 40 : 100; triggerFreeze(); bpHook('slow_pickup', 1); }
                 if (p.type === "shield") { shieldCount++; bpHook('shield_pickup', 1); }
@@ -3902,6 +4097,10 @@ const BP_TITLES = {
     macrame_master:   { icon:'🧶', name:'Мастер макраме' },
     legend:           { icon:'🌟', name:'Легенда' },
     natalia_nightmare:{ icon:'😈', name:'Кошмар Наталии' },
+    // Из кейсов
+    fast_feet:        { icon:'⚡', name:'Быстрые ноги' },
+    record_hunter:    { icon:'🏹', name:'Охотник за рекордами' },
+    fat:              { icon:'🍔', name:'Жирный' },
 };
 const BP_EMOJIS = {
     wave:   { icon:'👋', name:'Привет' },
@@ -3912,17 +4111,26 @@ const BP_EMOJIS = {
     crown:  { icon:'👑', name:'Корона' },
     devil:  { icon:'😈', name:'Дьявол' },
     ghost:  { icon:'👻', name:'Призрак' },
+    // Из кейсов
+    duel:    { icon:'⚔️', name:'Дуэль' },
+    tornado: { icon:'🌪️', name:'Торнадо' },
 };
 const BP_BADGES = {
     hunter:     { icon:'🎯', name:'Охотник' },
     apprentice: { icon:'🎓', name:'Ученик' },
     fugitive:   { icon:'🏃', name:'Беглец' },
+    // Из кейсов
+    dodge_machine: { icon:'🤖', name:'Машина уклонения' },
+    speed_demon:   { icon:'💨', name:'Скоростной демон' },
 };
 const BP_FRAMES = {
     silver: { icon:'⚪', name:'Серебряная', cls:'frame-silver' },
     gold:   { icon:'🌟', name:'Золотая',    cls:'frame-gold' },
     neon:   { icon:'💜', name:'Неоновая',   cls:'frame-neon' },
     fire:   { icon:'🔥', name:'Огненная',   cls:'frame-fire' },
+    // Из кейсов
+    cosmos:       { icon:'🌌', name:'Космос',         cls:'frame-cosmos' },
+    dark_matter:  { icon:'🕳️', name:'Тёмная Материя', cls:'frame-dark-matter' },
 };
 
 async function bpApplyReward(r) {
@@ -4294,6 +4502,321 @@ async function transferDoBoosters() {
         amount_sent: amt,
         amount_received: net
     }).then(({ error }) => { if (error) console.warn('transfer log err', error); });
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+// ── CASES (RNG лутбоксы) ─────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// Требует в таблице leaderboard колонки:
+//   common_cases int default 0, epic_cases int default 0, legendary_cases int default 0
+// (Существующие массивы unlocked_titles/emojis/badges/frames и owned_skins/owned_player_skins
+//  уже используются — дубликаты компенсируются макраме или бустерами.)
+
+const CASE_CONFIG = {
+    common: {
+        name: "Обычный кейс", icon: "📦", rarColor: "var(--case-r-common)",
+        rarLabel: "COMMON",
+        rewards: [
+            { w: 0.45,  type:'macrame_range', min:450,  max:800,  em:'🧶', label:'Макраме' },
+            { w: 0.25,  type:'booster',       amount:1,           em:'⚡', label:'Бустер' },
+            { w: 0.16,  type:'title',         id:'fast_feet',     em:'⚡', label:'Титул «Быстрые ноги»' },
+            { w: 0.10,  type:'badge',         id:'dodge_machine', em:'🤖', label:'Бейдж «Машина уклонения»' },
+            { w: 0.04,  type:'frame',         id:'cosmos',        em:'🌌', label:'Рамка «Космос»' },
+        ]
+    },
+    epic: {
+        name: "Эпический кейс", icon: "🎁", rarColor: "var(--case-r-epic)",
+        rarLabel: "EPIC",
+        rewards: [
+            { w: 0.385, type:'macrame_range', min:800,  max:1200, em:'🧶', label:'Макраме' },
+            { w: 0.27,  type:'booster_range', min:2,    max:4,    em:'⚡', label:'Бустеры' },
+            { w: 0.16,  type:'emoji',         id:'duel',          em:'⚔️', label:'Эмоция «Дуэль»' },
+            { w: 0.10,  type:'title',         id:'record_hunter', em:'🏹', label:'Титул «Охотник за рекордами»' },
+            { w: 0.06,  type:'player_skin',   id:'plaksik',       em:'😢', label:'Скин игрока «Плаксик»' },
+            { w: 0.025, type:'enemy_skin',    id:'alena_igorevna',em:'💋', label:'Скин Наталии «Алёна Игоревна»' },
+        ]
+    },
+    legendary: {
+        name: "Легендарный кейс", icon: "🏆", rarColor: "var(--case-r-legendary)",
+        rarLabel: "LEGENDARY",
+        rewards: [
+            { w: 0.32, type:'macrame_range', min:1500, max:2400, em:'🧶', label:'Макраме' },
+            { w: 0.26, type:'booster_range', min:4,    max:8,    em:'⚡', label:'Бустеры' },
+            { w: 0.14, type:'emoji',         id:'tornado',       em:'🌪️', label:'Эмоция «Торнадо»' },
+            { w: 0.11, type:'badge',         id:'speed_demon',   em:'💨', label:'Бейдж «Скоростной демон»' },
+            { w: 0.09, type:'title',         id:'fat',           em:'🍔', label:'Титул «Жирный»' },
+            { w: 0.07, type:'frame',         id:'dark_matter',   em:'🕳️', label:'Рамка «Тёмная Материя»' },
+            { w: 0.01, type:'enemy_skin',    id:'brudin',        em:'🌑', label:'Скин Наталии «Брудин»' },
+        ]
+    }
+};
+
+const CLOVER_CHANCE = 0.10;   // 10% шанс клевера на каждом ролле
+const CASE_OPEN_MS  = 5400;   // 5.4 сек анимация (≈5-6 как просили)
+let _caseSpinning = false;
+
+function rngWeighted(rewards) {
+    const total = rewards.reduce((s, r) => s + r.w, 0);
+    let x = Math.random() * total;
+    for (const r of rewards) {
+        x -= r.w;
+        if (x <= 0) return r;
+    }
+    return rewards[rewards.length - 1];
+}
+
+function caseDropToast(msg, color) {
+    const t = document.createElement('div');
+    t.className = 'case-drop-toast';
+    t.innerText = msg;
+    t.style.borderColor = color || 'var(--card-border)';
+    t.style.color = color || '#fff';
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, 2200);
+}
+
+async function saveCasesToDB() {
+    if (!currentID) return;
+    try {
+        await supabaseClient.from('leaderboard').update({
+            common_cases: commonCases,
+            epic_cases: epicCases,
+            legendary_cases: legendaryCases
+        }).eq('id', currentID);
+    } catch (e) { console.warn('saveCasesToDB failed', e); }
+}
+
+function renderCasesTab() {
+    const totalLeg = legendaryCases;
+    const cards = [
+        { id:'common',    cls:'common',    cfg: CASE_CONFIG.common,    count: commonCases },
+        { id:'epic',      cls:'epic',      cfg: CASE_CONFIG.epic,      count: epicCases },
+        { id:'legendary', cls:'legendary', cfg: CASE_CONFIG.legendary, count: legendaryCases }
+    ];
+    let html = `
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px; text-align:center; line-height:1.45;">
+            🍀 В каждом ролле 10% шанс клевера — даёт переролл с x2 наградой (стакается).<br>
+            Дубликаты косметики автоматически конвертируются в макраме или бустеры.
+        </div>
+        <div class="case-cards">`;
+    for (const c of cards) {
+        html += `
+            <div class="case-card ${c.cls}">
+                <div class="case-icon">${c.cfg.icon}</div>
+                <div class="case-info">
+                    <div class="case-name">${c.cfg.name}</div>
+                    <div class="case-count">В наличии: <b>${c.count}</b> шт.</div>
+                </div>
+                <button class="case-open-btn" onclick="openCase('${c.id}')" ${c.count<=0?'disabled':''}>
+                    ОТКРЫТЬ
+                </button>
+            </div>`;
+    }
+    html += `</div>
+        <div style="margin-top:14px; padding:12px; border-radius:14px; background:rgba(255,255,255,0.02); border:1px solid var(--card-border); font-size:11px; color:var(--text-muted); line-height:1.45;">
+            💡 Кейсы выпадают во время игры как редкие шары:
+            <span style="color:#9ca3af;">📦 обычный</span>,
+            <span style="color:#a855f7;">🎁 эпический</span>,
+            <span style="color:#fbbf24;">🏆 легендарный</span>.
+        </div>`;
+    return html;
+}
+
+async function openCase(rarity) {
+    if (_caseSpinning) return;
+    const cfg = CASE_CONFIG[rarity];
+    if (!cfg) return;
+    const counts = { common: () => commonCases, epic: () => epicCases, legendary: () => legendaryCases };
+    if (counts[rarity]() <= 0) { alert('Нет такого кейса!'); return; }
+
+    // списываем кейс
+    if (rarity === 'common')    commonCases--;
+    if (rarity === 'epic')      epicCases--;
+    if (rarity === 'legendary') legendaryCases--;
+    await saveCasesToDB();
+
+    // показываем оверлей
+    document.getElementById('caseOpenTitle').innerText = `${cfg.icon} ${cfg.name}`;
+    document.getElementById('caseReelWrap').style.setProperty('--rc', cfg.rarColor);
+    document.getElementById('caseResult').classList.remove('show');
+    document.getElementById('caseResult').style.setProperty('--rc', cfg.rarColor);
+    document.getElementById('caseCloverFlash').classList.remove('show');
+    document.getElementById('caseCloseBtn').disabled = true;
+    document.getElementById('caseCloseBtn').innerText = 'Открывается…';
+    document.getElementById('caseOpen').classList.add('open');
+
+    await runCaseRoll(rarity, 1);
+}
+
+// rollMultiplier: 1, 2, 4, 8 ... — увеличивается при клевере
+async function runCaseRoll(rarity, rollMultiplier) {
+    _caseSpinning = true;
+    const cfg = CASE_CONFIG[rarity];
+    const reel = document.getElementById('caseReel');
+    const wrap = document.getElementById('caseReelWrap');
+
+    // выбираем награду (с учётом клевера — клевер сам по себе не приз, а modifier)
+    const isClover = Math.random() < CLOVER_CHANCE;
+    const finalReward = isClover ? null : rngWeighted(cfg.rewards);
+    const displayReward = finalReward || { em:'🍀', label:'Клевер!', type:'clover' };
+
+    // строим ленту: ~30 случайных + центр (40-я) — наша награда
+    const ITEM_W = 100;
+    const reelItems = [];
+    for (let i = 0; i < 60; i++) {
+        const r = (i === 40) ? displayReward : rngWeighted(cfg.rewards);
+        reelItems.push(r);
+    }
+    reel.innerHTML = reelItems.map(r => `
+        <div class="reel-item">
+            <div class="em">${r.em}</div>
+            <div class="nm">${r.label}</div>
+        </div>`).join('');
+
+    // мгновенно сбрасываем
+    reel.style.transition = 'none';
+    reel.style.transform = 'translateX(0)';
+    void reel.offsetWidth;
+    // целевое смещение: 40-й элемент должен быть по центру маркера
+    const wrapW = wrap.offsetWidth;
+    const targetX = -(40 * ITEM_W) - ITEM_W/2 + wrapW/2 + (Math.random() * 30 - 15);
+
+    requestAnimationFrame(() => {
+        reel.style.transition = `transform ${CASE_OPEN_MS}ms var(--ease-reel)`;
+        reel.style.transform = `translateX(${targetX}px)`;
+    });
+
+    await new Promise(res => setTimeout(res, CASE_OPEN_MS + 100));
+
+    // Если клевер — реролл с увеличенным множителем
+    if (isClover) {
+        const flash = document.getElementById('caseCloverFlash');
+        document.getElementById('caseCloverMult').innerText = 'x' + (rollMultiplier * 2);
+        flash.classList.add('show');
+        await new Promise(res => setTimeout(res, 900));
+        flash.classList.remove('show');
+        return runCaseRoll(rarity, rollMultiplier * 2);
+    }
+
+    // Применяем награду
+    const applied = await applyCaseReward(finalReward, rollMultiplier);
+
+    // показываем итог
+    const res = document.getElementById('caseResult');
+    document.getElementById('caseResRar').innerText = cfg.rarLabel + (rollMultiplier > 1 ? ` · 🍀 x${rollMultiplier}` : '');
+    document.getElementById('caseResEm').innerText = applied.em;
+    document.getElementById('caseResNm').innerText = applied.name;
+    document.getElementById('caseResRw').innerText = applied.flavor;
+    res.classList.add('show');
+
+    document.getElementById('caseCloseBtn').disabled = false;
+    document.getElementById('caseCloseBtn').innerText = 'Забрать';
+    _caseSpinning = false;
+}
+
+function closeCaseOverlay() {
+    if (_caseSpinning) return;
+    document.getElementById('caseOpen').classList.remove('open');
+    // refresh shop view
+    if (document.getElementById('shop').style.display !== 'none') renderShop('cases');
+    updateMacrameUI();
+}
+
+// Применяет награду; если дубликат косметики — конвертирует в макраме/бустеры.
+// Возвращает { em, name, flavor } для UI.
+async function applyCaseReward(reward, mult) {
+    mult = mult || 1;
+    const upd = {};
+    let em = reward.em, name = reward.label, flavor = '';
+
+    if (reward.type === 'macrame_range') {
+        const amount = Math.floor((reward.min + Math.random() * (reward.max - reward.min + 1))) * mult;
+        totalMacrame += amount;
+        upd.macrame_points = totalMacrame;
+        flavor = `+${amount} 🧶`;
+        name = `${amount} макраме`;
+    } else if (reward.type === 'booster') {
+        const amt = (reward.amount || 1) * mult;
+        boostersCount += amt;
+        upd.boosters_count = boostersCount;
+        flavor = `+${amt} бустер${amt>1?'а/ов':''}`;
+        name = `Бустер ×${amt}`;
+    } else if (reward.type === 'booster_range') {
+        const amt = Math.floor(reward.min + Math.random() * (reward.max - reward.min + 1)) * mult;
+        boostersCount += amt;
+        upd.boosters_count = boostersCount;
+        flavor = `+${amt} бустеров`;
+        name = `${amt} бустеров`;
+    } else if (reward.type === 'title') {
+        if (unlockedTitles.includes(reward.id)) {
+            return await applyDuplicateComp(em, name, mult);
+        }
+        unlockedTitles.push(reward.id);
+        upd.unlocked_titles = unlockedTitles;
+        const t = BP_TITLES[reward.id]; em = t?.icon || em; name = `Титул «${t?.name || reward.id}»`;
+        flavor = mult > 1 ? `🍀 множитель не применяется к косметике` : `Новая косметика!`;
+    } else if (reward.type === 'badge') {
+        if (unlockedBadges.includes(reward.id)) return await applyDuplicateComp(em, name, mult);
+        unlockedBadges.push(reward.id);
+        upd.unlocked_badges = unlockedBadges;
+        const b = BP_BADGES[reward.id]; em = b?.icon || em; name = `Бейдж «${b?.name || reward.id}»`;
+        flavor = `Новая косметика!`;
+    } else if (reward.type === 'frame') {
+        if (unlockedFrames.includes(reward.id)) return await applyDuplicateComp(em, name, mult);
+        unlockedFrames.push(reward.id);
+        upd.unlocked_frames = unlockedFrames;
+        const f = BP_FRAMES[reward.id]; em = f?.icon || em; name = `Рамка «${f?.name || reward.id}»`;
+        flavor = `Новая косметика!`;
+    } else if (reward.type === 'emoji') {
+        if (unlockedEmojis.includes(reward.id)) return await applyDuplicateComp(em, name, mult);
+        unlockedEmojis.push(reward.id);
+        upd.unlocked_emojis = unlockedEmojis;
+        const e = BP_EMOJIS[reward.id]; em = e?.icon || em; name = `Эмоция «${e?.name || reward.id}»`;
+        flavor = `Новая косметика!`;
+    } else if (reward.type === 'player_skin') {
+        if (ownedPlayerSkins.includes(reward.id)) return await applyDuplicateComp(em, name, mult);
+        ownedPlayerSkins.push(reward.id);
+        upd.owned_player_skins = ownedPlayerSkins;
+        const s = PLAYER_SKINS[reward.id]; name = `Скин игрока «${s?.name || reward.id}»`;
+        flavor = `Эксклюзивный скин!`;
+    } else if (reward.type === 'enemy_skin') {
+        if (ownedSkins.includes(reward.id)) return await applyDuplicateComp(em, name, mult);
+        ownedSkins.push(reward.id);
+        upd.owned_skins = ownedSkins;
+        const s = ENEMY_SKINS[reward.id]; name = `Скин Наталии «${s?.name || reward.id}»`;
+        flavor = `Эксклюзивный скин!`;
+    }
+
+    if (currentID && Object.keys(upd).length) {
+        try { await supabaseClient.from('leaderboard').update(upd).eq('id', currentID); }
+        catch(e) { console.warn('case reward save failed', e); }
+    }
+    updateMacrameUI();
+    return { em, name, flavor };
+}
+
+// Компенсация дубликата: 75% — макраме, 25% — бустеры
+async function applyDuplicateComp(origEm, origName, mult) {
+    mult = mult || 1;
+    const wantMacrame = Math.random() < 0.75;
+    if (wantMacrame) {
+        const amt = Math.floor((300 + Math.random() * 700)) * mult;
+        totalMacrame += amt;
+        if (currentID) {
+            try { await supabaseClient.from('leaderboard').update({ macrame_points: totalMacrame }).eq('id', currentID); } catch(e){}
+        }
+        updateMacrameUI();
+        return { em:'🧶', name:`Дубликат → ${amt} макраме`, flavor:`Компенсация за повтор` };
+    } else {
+        const amt = Math.max(1, Math.round((1 + Math.random() * 2) * mult));
+        boostersCount += amt;
+        if (currentID) {
+            try { await supabaseClient.from('leaderboard').update({ boosters_count: boostersCount }).eq('id', currentID); } catch(e){}
+        }
+        return { em:'⚡', name:`Дубликат → ${amt} бустер${amt>1?'а/ов':''}`, flavor:`Компенсация за повтор` };
+    }
 }
 
 </script>
